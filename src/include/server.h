@@ -155,24 +155,17 @@ void VisitBlock(int row, int column) {
  * the advanced task!!!
  */
 void PrintMap() {
-  if(game_state!=1)
-  {
+  if (game_state != 1) {
     for (int i = 0; i < rows; i++) {
       std::cout << visible_map[i] << std::endl;
     }
-  }
-  else
-  {
+  } else {
     for (int i = 0; i < rows; i++) {
-      for(int j=0;j<columns;j++)
-      {
-        if(origin_map[i][j]=='X')
-        {
-          std::cout<<'@';
-        }
-        else
-        {
-          std::cout<<number_of_nearby_mines[i][j];
+      for (int j = 0; j < columns; j++) {
+        if (origin_map[i][j] == 'X') {
+          std::cout << '@';
+        } else {
+          std::cout << number_of_nearby_mines[i][j];
         }
       }
       std::cout << std::endl;

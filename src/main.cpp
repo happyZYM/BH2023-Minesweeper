@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "../include/server.h"
+#include "include/server.h"
 
 int main() {
   InitMap();

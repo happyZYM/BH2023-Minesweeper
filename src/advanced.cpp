@@ -3,8 +3,8 @@
 #include <sstream>
 #include <string>
 
-#include "../include/client.h"
-#include "../include/server.h"
+#include "include/client.h"
+#include "include/server.h"
 
 /**
  * @brief The implementation of function Execute

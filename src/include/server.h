@@ -1,8 +1,11 @@
 #ifndef SERVER_H
 #define SERVER_H
 
+#include <cassert>
 #include <cstdlib>
+#include <cstring>
 #include <iostream>
+#include <queue>
 
 /*
  * You may need to define some global variables for the information of the game
@@ -15,6 +18,12 @@ int rows;        // The count of rows of the game map
 int columns;     // The count of columns of the game map
 int game_state;  // The state of the game, 0 for continuing, 1 for winning, -1
                  // for losing
+int visit_count, step_count;
+const int max_size = 35;
+char origin_map[max_size][max_size];   // The original map
+char visible_map[max_size][max_size];  // The map that the player can see
+int number_of_nearby_mines[max_size][max_size];  // The number of nearby mines
+int number_of_all_mines;                         // The number of all mines
 /**
  * @brief The definition of function InitMap()
  *
@@ -28,8 +37,34 @@ int game_state;  // The state of the game, 0 for continuing, 1 for winning, -1
  * blocks unvisited.
  */
 void InitMap() {
+  using namespace std;
   std::cin >> rows >> columns;
-  // TODO (student): Implement me!
+  for (int i = 0; i < rows; i++) {
+    cin >> origin_map[i];
+    assert(strlen(origin_map[i]) == columns);
+  }
+  for (int i = 0; i < rows; i++)
+    for (int j = 0; j < columns; j++) visible_map[i][j] = '?';
+  for (int i = 0; i < rows; i++)
+    for (int j = 0; j < columns; j++) {
+      for (int dr = -1; dr <= 1; dr++)
+        for (int dc = -1; dc <= 1; dc++) {
+          int nr = i + dr, nc = j + dc;
+          if (nr < 0 || nr >= rows || nc < 0 || nc >= columns) continue;
+          if (origin_map[nr][nc] == 'X') number_of_nearby_mines[i][j]++;
+        }
+    }
+  number_of_all_mines = 0;
+  for (int i = 0; i < rows; i++)
+    for (int j = 0; j < columns; j++)
+      if (origin_map[i][j] == 'X') number_of_all_mines++;
+  // bug test: output the number of nearby mines
+  // for (int i = 0; i < rows; i++) {
+  //   for (int j = 0; j < columns; j++) {
+  //     cout << number_of_nearby_mines[i][j] << ' ';
+  //   }
+  //   cout << endl;
+  // }
 }
 
 /**
@@ -58,7 +93,41 @@ void InitMap() {
  * the game ends and the player loses.
  */
 void VisitBlock(int row, int column) {
-  // TODO (student): Implement me!
+  step_count++;
+  using namespace std;
+  assert(0 <= row && row < rows && 0 <= column && column < columns);
+  if (origin_map[row][column] == 'X') {
+    game_state = -1;
+    visible_map[row][column] = 'X';
+  } else {
+    assert(game_state == 0);
+    if (visible_map[row][column] != '?') return;
+    game_state = 0;
+    visible_map[row][column] = '0' + number_of_nearby_mines[row][column];
+    queue<pair<int, int>> q;
+    if (visible_map[row][column] == '0') q.push(make_pair(row, column));
+    visit_count++;
+    while (!q.empty()) {
+      pair<int, int> p = q.front();
+      q.pop();
+      int x = p.first, y = p.second;
+      assert(visible_map[x][y] == '0');
+      for (int i = -1; i <= 1; i++)
+        for (int j = -1; j <= 1; j++) {
+          int nx = x + i, ny = y + j;
+          if (nx < 0 || nx >= rows || ny < 0 || ny >= columns) continue;
+          if (visible_map[nx][ny] != '?') continue;
+          visit_count++;
+          visible_map[nx][ny] = '0' + number_of_nearby_mines[nx][ny];
+          if (visible_map[nx][ny] == '0') q.push(make_pair(nx, ny));
+        }
+    }
+    int cnt = 0;
+    for (int i = 0; i < rows; i++)
+      for (int j = 0; j < columns; j++)
+        if (visible_map[i][j] == '?') cnt++;
+    if (cnt == number_of_all_mines) game_state = 1;
+  }
 }
 
 /**
@@ -86,7 +155,29 @@ void VisitBlock(int row, int column) {
  * the advanced task!!!
  */
 void PrintMap() {
-  // TODO (student): Implement me!
+  if(game_state!=1)
+  {
+    for (int i = 0; i < rows; i++) {
+      std::cout << visible_map[i] << std::endl;
+    }
+  }
+  else
+  {
+    for (int i = 0; i < rows; i++) {
+      for(int j=0;j<columns;j++)
+      {
+        if(origin_map[i][j]=='X')
+        {
+          std::cout<<'@';
+        }
+        else
+        {
+          std::cout<<number_of_nearby_mines[i][j];
+        }
+      }
+      std::cout << std::endl;
+    }
+  }
 }
 
 /**
@@ -98,7 +189,14 @@ void PrintMap() {
  * number of steps taken respectively.
  */
 void ExitGame() {
-  // TODO (student): Implement me!
+  assert(game_state != 0);
+  if (game_state == 1) {
+    std::cout << "YOU WIN!" << std::endl;
+    std::cout << visit_count << ' ' << step_count << std::endl;
+  } else {
+    std::cout << "GAME OVER!" << std::endl;
+    std::cout << visit_count << ' ' << step_count << std::endl;
+  }
   exit(0);  // Exit the game immediately
 }
 

@@ -2,6 +2,7 @@
 #define CLIENT_H
 
 #include <cassert>
+#include <cstring>
 #include <iostream>
 #include <utility>
 

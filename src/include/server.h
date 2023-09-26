@@ -161,7 +161,7 @@ void VisitBlock(int row, int column) {
  * the advanced task!!!
  */
 void PrintMap() {
-	using namespace Server;
+  using namespace Server;
   if (game_state != 1) {
     for (int i = 0; i < rows; i++) {
       std::cout << visible_map[i] << std::endl;
@@ -189,7 +189,7 @@ void PrintMap() {
  * number of steps taken respectively.
  */
 void ExitGame() {
-	using namespace Server;
+  using namespace Server;
   assert(game_state != 0);
   if (game_state == 1) {
     std::cout << "YOU WIN!" << std::endl;

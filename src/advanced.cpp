@@ -27,11 +27,13 @@ void Execute(int row, int column) {
   PrintMap();
   std::cout.rdbuf(old_output_buffer);  // Restore the output buffer
   str = oss.str();                     // Read the output
+  // debug: output status of map to original stdout
+  PrintMap();
   std::istringstream iss(str);  // Redirect the input to the string, which
                                 // stores the output recently
   std::streambuf *old_input_buffer = std::cin.rdbuf();
   ReadMap();
-  std::cin.rdbuf(old_input_buffer);
+  std::cin.rdbuf(old_input_buffer);  // Restore the input buffer
 }
 
 int main() {

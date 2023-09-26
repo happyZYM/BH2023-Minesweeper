@@ -3,8 +3,8 @@
 #include <sstream>
 #include <string>
 
-#include "include/client.h"
-#include "include/server.h"
+#include "client.h"
+#include "server.h"
 
 /**
  * @brief The implementation of function Execute
@@ -15,6 +15,7 @@ void Execute(int row, int column) {
   std::string str;
   VisitBlock(row, column);
   if (game_state != 0) {
+    // PrintMap(); // this line may help you debug
     ExitGame();
   }
   std::ostringstream oss;
@@ -27,18 +28,22 @@ void Execute(int row, int column) {
   PrintMap();
   std::cout.rdbuf(old_output_buffer);  // Restore the output buffer
   str = oss.str();                     // Read the output
-  // debug: output status of map to original stdout
-  PrintMap();
   std::istringstream iss(str);  // Redirect the input to the string, which
                                 // stores the output recently
   std::streambuf *old_input_buffer = std::cin.rdbuf();
+  std::cin.rdbuf(iss.rdbuf());  // Redirect the input to the string, which
+                                // stores the output recently
+  // debug: call PrintMap() to see the map
+  PrintMap();
   ReadMap();
   std::cin.rdbuf(old_input_buffer);  // Restore the input buffer
+  // PrintMap(); // These two lines may help you debug
+  // std::cout << std::endl;
 }
 
 int main() {
   InitMap();
-  std::cout << rows << " " << columns << std::endl;
+  // std::cout << rows << " " << columns << std::endl;
   InitGame();
   while (true) {
     Decide();  // Exit() will be called in this function

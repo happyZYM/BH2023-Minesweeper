@@ -105,6 +105,7 @@ void PreProcessData() {
               }
         }
       }
+  //find all unkown blocks that are adjacnent to clicked blocks
 }
 /**
  * @brief The definition of function MakeBestGuess()

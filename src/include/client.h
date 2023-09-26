@@ -106,7 +106,7 @@ void PreProcessData() {
         }
       }
   //find all unkown blocks that are adjacnent to clicked blocks and prepare for Gaussian Elimination
-  //start Gaussian Elimination
+  //start Gaussian Elimination 
 }
 /**
  * @brief The definition of function MakeBestGuess()

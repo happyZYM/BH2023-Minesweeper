@@ -33,12 +33,10 @@ void Execute(int row, int column) {
   std::streambuf *old_input_buffer = std::cin.rdbuf();
   std::cin.rdbuf(iss.rdbuf());  // Redirect the input to the string, which
                                 // stores the output recently
-  // debug: call PrintMap() to see the map
-  PrintMap();
   ReadMap();
   std::cin.rdbuf(old_input_buffer);  // Restore the input buffer
-  // PrintMap(); // These two lines may help you debug
-  // std::cout << std::endl;
+  PrintMap();                        // These two lines may help you debug
+  std::cout << std::endl;
 }
 
 int main() {

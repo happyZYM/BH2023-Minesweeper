@@ -15,7 +15,7 @@ void Execute(int row, int column) {
   std::string str;
   VisitBlock(row, column);
   if (game_state != 0) {
-    // PrintMap(); // this line may help you debug
+    PrintMap(); // this line may help you debug
     ExitGame();
   }
   std::ostringstream oss;

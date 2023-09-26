@@ -18,12 +18,14 @@ int rows;        // The count of rows of the game map
 int columns;     // The count of columns of the game map
 int game_state;  // The state of the game, 0 for continuing, 1 for winning, -1
                  // for losing
+namespace Server {
 int visit_count, step_count;
 const int max_size = 35;
 char origin_map[max_size][max_size];   // The original map
 char visible_map[max_size][max_size];  // The map that the player can see
 int number_of_nearby_mines[max_size][max_size];  // The number of nearby mines
 int number_of_all_mines;                         // The number of all mines
+}  // namespace Server
 /**
  * @brief The definition of function InitMap()
  *
@@ -38,6 +40,7 @@ int number_of_all_mines;                         // The number of all mines
  */
 void InitMap() {
   using namespace std;
+  using namespace Server;
   std::cin >> rows >> columns;
   assert(2 <= rows && rows <= 30 && 2 <= columns && columns <= 30);
   for (int i = 0; i < rows; i++) {
@@ -94,6 +97,7 @@ void InitMap() {
  * the game ends and the player loses.
  */
 void VisitBlock(int row, int column) {
+  using namespace Server;
   step_count++;
   using namespace std;
   assert(0 <= row && row < rows && 0 <= column && column < columns);
@@ -156,6 +160,7 @@ void VisitBlock(int row, int column) {
  * the advanced task!!!
  */
 void PrintMap() {
+	using namespace Server;
   if (game_state != 1) {
     for (int i = 0; i < rows; i++) {
       std::cout << visible_map[i] << std::endl;
@@ -183,6 +188,7 @@ void PrintMap() {
  * number of steps taken respectively.
  */
 void ExitGame() {
+	using namespace Server;
   assert(game_state != 0);
   if (game_state == 1) {
     std::cout << "YOU WIN!" << std::endl;

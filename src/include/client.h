@@ -1,6 +1,7 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
+#include <cassert>
 #include <iostream>
 #include <utility>
 
@@ -46,8 +47,34 @@ void InitGame() {
  *     12?
  *     01?
  */
+namespace Client {
+const int max_size = 35;
+char game_map[max_size][max_size];
+/**
+ * @brief The definition of function PreProcessData()
+ * 
+ * @details This function is designed to preprocess the data of the game map immedietly after reading it.
+ */
+void PreProcessData() {
+  using namespace Client;
+}
+/**
+ * @brief The definition of function GenerateNextStep()
+ * 
+ * @details This function is designed to generate the next step when playing the client's (or player's) role.
+*/
+std::pair<int, int> GenerateNextStep() {
+  using namespace Client;
+  return std::make_pair(0, 0);
+}
+}  // namespace Client
 void ReadMap() {
-  // TODO (student): Implement me!
+  using namespace Client;
+  for (int i = 0; i < rows; i++) {
+    std::cin >> game_map[i];
+    assert(strlen(game_map[i]) == columns);
+  }
+  PreProcessData();
 }
 
 /**
@@ -57,10 +84,11 @@ void ReadMap() {
  * client's (or player's) role. Open up your mind and make your decision here!
  */
 void Decide() {
-  // TODO (student): Implement me!
-  // while (true) {
-  //   Execute(0, 0);
-  // }
+  using namespace Client;
+  while (true) {
+	std::pair<int, int> next_step = GenerateNextStep();
+    Execute(next_step.first, next_step.second);
+  }
 }
 
 #endif

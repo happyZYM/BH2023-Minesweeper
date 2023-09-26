@@ -14,6 +14,7 @@
  * yet. However, if you are member of A-class or have learnt the use of cpp
  * class, member functions, etc., you're free to modify this structure.
  */
+// This server has passed the formal test, do not modify it if you are not sure
 int rows;        // The count of rows of the game map
 int columns;     // The count of columns of the game map
 int game_state;  // The state of the game, 0 for continuing, 1 for winning, -1

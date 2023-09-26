@@ -94,19 +94,15 @@ void PreProcessData() {
       if (game_map[i][j] != '?') {
         assert(game_map[i][j] >= '0' && game_map[i][j] <= '8');
         map_status[i][j] = 2;
-        // special process for 0 before Gaussian Elimination starts
-        if (game_map[i][j] == '0') {
-          for (int k = i - 1; k <= i + 1; k++)
-            for (int l = j - 1; l <= j + 1; l++)
-              if (k >= 0 && k < rows && l >= 0 && l < columns &&
-                  map_status[k][l] == 0) {
-                map_status[k][l] = 1;
-                no_mine_block_to_be_clicked.push(std::make_pair(k, l));
-              }
-        }
       }
-  //find all unkown blocks that are adjacnent to clicked blocks and prepare for Gaussian Elimination
-  //start Gaussian Elimination
+  // find all unkown blocks that are adjacnent to clicked blocks and prepare for
+  // Gaussian Elimination
+
+  // start Gaussian Elimination
+
+  // interpret the result of Gaussian Elimination,store the result in map_status
+  // and push the newly found block that definitely has no mine into
+  // no_mine_block_to_be_clicked
 }
 /**
  * @brief The definition of function MakeBestGuess()

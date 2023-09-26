@@ -39,6 +39,7 @@ int number_of_all_mines;                         // The number of all mines
 void InitMap() {
   using namespace std;
   std::cin >> rows >> columns;
+  assert(2 <= rows && rows <= 30 && 2 <= columns && columns <= 30);
   for (int i = 0; i < rows; i++) {
     cin >> origin_map[i];
     assert(strlen(origin_map[i]) == columns);

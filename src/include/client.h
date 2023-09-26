@@ -52,17 +52,17 @@ const int max_size = 35;
 char game_map[max_size][max_size];
 /**
  * @brief The definition of function PreProcessData()
- * 
- * @details This function is designed to preprocess the data of the game map immedietly after reading it.
+ *
+ * @details This function is designed to preprocess the data of the game map
+ * immedietly after reading it.
  */
-void PreProcessData() {
-  using namespace Client;
-}
+void PreProcessData() { using namespace Client; }
 /**
  * @brief The definition of function GenerateNextStep()
- * 
- * @details This function is designed to generate the next step when playing the client's (or player's) role.
-*/
+ *
+ * @details This function is designed to generate the next step when playing the
+ * client's (or player's) role.
+ */
 std::pair<int, int> GenerateNextStep() {
   using namespace Client;
   return std::make_pair(0, 0);
@@ -86,7 +86,7 @@ void ReadMap() {
 void Decide() {
   using namespace Client;
   while (true) {
-	std::pair<int, int> next_step = GenerateNextStep();
+    std::pair<int, int> next_step = GenerateNextStep();
     Execute(next_step.first, next_step.second);
   }
 }

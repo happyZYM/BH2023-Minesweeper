@@ -5,8 +5,10 @@
 #include <cassert>
 #include <cstring>
 #include <iostream>
+#include <map>
 #include <queue>
 #include <random>
+#include <set>
 #include <utility>
 #include <vector>
 
@@ -121,27 +123,98 @@ void ProcessSimpleCase() {
         }
       }
 }
+std::map<std::pair<int, int>, int>
+    position_to_variaID;  // convert the (row,column) to variable ID in the
+                          // equations,0 based
+std::vector<std::pair<int, int> > variaID_to_position;
 /**
  * @brief The definition of function GenerateEquations()
  *
  * @details This function is designed to scan the game_map and map_status to
  * generate the equations that will be used in Gaussian-Jordan Elimination.
- * It returns a vector<vector<double>> equations, where equations[i] is the i th equation.
+ * It returns a vector<vector<double>> equations, where equations[i] is the i th
+ * equation.
  */
-
+std::vector<std::vector<double> > GenerateEquations() {
+  variaID_to_position.clear();
+  position_to_variaID.clear();
+  int number_of_equations = 0;
+  std::set<std::pair<int, int> > can_form_equations;
+  for (int i = 0; i < rows; i++)
+    for (int j = 0; j < columns; j++)
+      if (map_status[i][j] == 2) {
+        const int dx[8] = {-1, -1, -1, 0, 0, 1, 1, 1},
+                  dy[8] = {-1, 0, 1, -1, 1, -1, 0, 1};
+        bool there_is_unknown_nearby = false;
+        for (int k = 0; k < 8; k++) {
+          int nr = i + dx[k], nc = j + dy[k];
+          if (nr < 0 || nr >= rows || nc < 0 || nc >= columns) continue;
+          if (map_status[nr][nc] != 0) continue;
+          there_is_unknown_nearby = true;
+          std::pair<int, int> pos = std::make_pair(nr, nc);
+          if (position_to_variaID.find(pos) == position_to_variaID.end()) {
+            int cnt = variaID_to_position.size();
+            variaID_to_position.push_back(pos);
+            position_to_variaID[pos] = cnt;
+          }
+        }
+        number_of_equations += there_is_unknown_nearby;
+        if (there_is_unknown_nearby)
+          can_form_equations.insert(std::make_pair(i, j));
+      }
+  std::vector<std::vector<double> > equations;
+  std::vector<double> equa_template;
+  equa_template.resize(position_to_variaID.size() + 1);
+  for (int i = 0; i < equa_template.size(); i++) equa_template[i] = 0;
+  for (int i = 0; i < rows; i++)
+    for (int j = 0; j < columns; j++)
+      if (can_form_equations.count(std::make_pair(i, j)) == 1) {
+        assert('0' <= game_map[i][j] && game_map[i][j] <= '8');
+        equations.push_back(equa_template);
+        int nearby_mines = game_map[i][j] - '0';
+        const int dx[8] = {-1, -1, -1, 0, 0, 1, 1, 1},
+                  dy[8] = {-1, 0, 1, -1, 1, -1, 0, 1};
+        for (int k = 0; k < 8; k++) {
+          int x = i + dx[k], y = j + dy[k];
+          if (x >= 0 && x < rows && y >= 0 && y < columns) {
+            if (map_status[x][y] == -1) nearby_mines--;
+          }
+        }
+        equations[equations.size() - 1][position_to_variaID.size()] =
+            nearby_mines;
+        for (int k = 0; k < 8; k++) {
+          int nr = i + dx[k], nc = j + dy[k];
+          if (nr < 0 || nr >= rows || nc < 0 || nc >= columns) continue;
+          if (map_status[nr][nc] != 0) continue;
+          equations[equations.size() - 1]
+                   [position_to_variaID[std::make_pair(nr, nc)]] = 1;
+        }
+      }
+  return equations;
+}
 /**
  * @brief The definition of function GaussianJordanElimination()
  * @details This function is designed to use Gaussian-Jordan Elimination to
  * solve the equations. It returns the processed vector<vector<double>>
  * &equations
- * @param vector<vector<double>> &equations The equations to be solved
+ * @param vector<vector<double>> equations The equations to be solved
  */
-const double eps = 1e-8;
-std::vector<std::vector<double> > &GaussianJordanElimination(
-    std::vector<std::vector<double> > &equations) {
+const double eps = 1e-6;
+const int error_status_of_nearint = -0x3f3f3f3f;
+inline int nearint(double v) {
+  int raw = v + 0.5;
+  if (abs(v - raw) < eps)
+    return raw;
+  else
+    return error_status_of_nearint;
+}
+std::vector<std::vector<double> > GaussianJordanElimination(
+    std::vector<std::vector<double> > equations) {
   using std::abs;
-  int n = equations.size(), m = equations[0].size();
-  assert(n + 1 == m);
+  int n = equations.size();
+  if (n == 0) return equations;
+  int m = equations[0].size();
+  // assert(n + 1 == m);
   for (int i = 0; i < n; i++) {
     int pivot = i;
     for (int j = i + 1; j < n; j++)
@@ -157,6 +230,38 @@ std::vector<std::vector<double> > &GaussianJordanElimination(
       }
   }
   return equations;
+}
+/**
+ * @brief The definition of function InterpretResult()
+ *
+ * @details This function is designed to interpret the result of Gaussian-Jordan
+ * Elimination
+ * @param std::vector<std::vector<double> > &equations The solved status of the
+ * equations
+ */
+void InterpretResult(std::vector<std::vector<double> > equations) {
+  int n = equations.size();
+  if (n == 0) return;
+  int m = equations[0].size();
+  for (int i = 0; i < n; i++) {
+    int number_of_1 = 0, number_of_non1 = 0, vid = -1;
+    for (int j = 0; j < m - 1; j++)
+      if (nearbyint(equations[i][j]) == 1) {
+        number_of_1++;
+        vid = j;
+      } else
+        number_of_non1++;
+    if (number_of_non1) continue;
+    if (number_of_1 != 1) continue;
+    int sol = nearbyint(equations[i][m - 1]);
+    if (sol == error_status_of_nearint) continue;
+    assert(sol == 0 || sol == 1);
+    assert(vid >= 0);
+    std::pair<int, int> pos = variaID_to_position[vid];
+    assert(map_status[pos.first][pos.second] == 0);
+    map_status[pos.first][pos.second] = 1;
+    no_mine_block_to_be_clicked.push(pos);
+  }
 }
 /**
  * @brief The definition of function PreProcessData()
@@ -181,14 +286,13 @@ void PreProcessData() {
       }
   // scan the map and process the simplest case
   ProcessSimpleCase();
-  // find all unkown blocks that are adjacnent to clicked blocks and prepare
+  // 1.find all unkown blocks that are adjacnent to clicked blocks and prepare
   // for Gaussian-Jordan Elimination.
-
-  // start Gaussian-Jordan Elimination
-
-  // interpret the result of Gaussian-Jordan Elimination,store the result in
+  // 2. start Gaussian-Jordan Elimination
+  // 3. interpret the result of Gaussian-Jordan Elimination,store the result in
   // map_status and push the newly found block that definitely has no mine
   // into no_mine_block_to_be_clicked
+  InterpretResult(GaussianJordanElimination(GenerateEquations()));
 }
 /**
  * @brief The definition of function TotalRandomGuess()

@@ -29,7 +29,6 @@ extern int columns;  // The count of columns of the game map
  * @param column The column coordinate (0-based) of the block to be visited.
  */
 void Execute(int row, int column);
-
 /**
  * @brief The definition of function InitGame()
  *
@@ -55,8 +54,8 @@ void InitGame() {
  *     01?
  */
 namespace Client {
-const unsigned int RndSeed = std::random_device{}();
-std::mt19937 RawRnd(RndSeed);  // a basic random generator
+const unsigned int RndSeed = 21212303;  // std::random_device{}();
+std::mt19937 RawRnd(RndSeed);           // a basic random generator
 const int max_size = 35;
 char game_map[max_size][max_size];  // store the raw game map in format of char
 std::queue<std::pair<int, int> >
@@ -128,6 +127,32 @@ std::map<std::pair<int, int>, int>
                           // equations,0 based
 std::vector<std::pair<int, int> > variaID_to_position;
 /**
+ * @brief The definition of function PrintEquations()
+ *
+ * @details This function is designed to print the equations for debugging
+ */
+void PrintEquations(std::vector<std::vector<double> > equations) {
+  std::cout << "equations:" << std::endl;
+  for (int i = 0; i < equations.size(); i++) {
+    for (int j = 0; j < equations[i].size(); j++)
+      std::cout << equations[i][j] << " ";
+    std::cout << std::endl;
+  }
+  // use variaID_to_position to print the position of each variable
+  std::cout << "variaID_to_position:" << std::endl;
+  for (int i = 0; i < variaID_to_position.size(); i++)
+    std::cout << "(" << variaID_to_position[i].first << ","
+              << variaID_to_position[i].second << ")"
+              << " ";
+  std::cout << std::endl;
+  // print map_status
+  std::cout << "map_status:" << std::endl;
+  for (int i = 0; i < rows; i++) {
+    for (int j = 0; j < columns; j++) std::cout << map_status[i][j] << " ";
+    std::cout << std::endl;
+  }
+}
+/**
  * @brief The definition of function GenerateEquations()
  *
  * @details This function is designed to scan the game_map and map_status to
@@ -190,6 +215,7 @@ std::vector<std::vector<double> > GenerateEquations() {
                    [position_to_variaID[std::make_pair(nr, nc)]] = 1;
         }
       }
+  PrintEquations(equations);
   return equations;
 }
 /**
@@ -222,11 +248,11 @@ std::vector<std::vector<double> > GaussianJordanElimination(
     std::swap(equations[i], equations[pivot]);
     if (abs(equations[i][i]) < eps) continue;
     const double pivot_value = equations[i][i];
-    for (int j = 0; j < n; j++) equations[i][j] /= pivot_value;
+    for (int j = 0; j < m; j++) equations[i][j] /= pivot_value;
     for (int j = 0; j < n; j++)
       if (j != i) {
         const double tmp = equations[j][i];
-        for (int k = 0; k < n; k++) equations[j][k] -= tmp * equations[i][k];
+        for (int k = 0; k < m; k++) equations[j][k] -= tmp * equations[i][k];
       }
   }
   return equations;
@@ -240,16 +266,20 @@ std::vector<std::vector<double> > GaussianJordanElimination(
  * equations
  */
 void InterpretResult(std::vector<std::vector<double> > equations) {
+  std::cout << "InterpretResult" << std::endl;
+  PrintEquations(equations);
   int n = equations.size();
   if (n == 0) return;
   int m = equations[0].size();
+  if (m == 1) return;
   for (int i = 0; i < n; i++) {
+    // std::cout << "equations[" << i << "]:" << std::endl;
     int number_of_1 = 0, number_of_non1 = 0, vid = -1;
     for (int j = 0; j < m - 1; j++)
       if (nearbyint(equations[i][j]) == 1) {
         number_of_1++;
         vid = j;
-      } else
+      } else if (nearbyint(equations[i][j]) != 0)
         number_of_non1++;
     if (number_of_non1) continue;
     if (number_of_1 != 1) continue;
@@ -257,10 +287,18 @@ void InterpretResult(std::vector<std::vector<double> > equations) {
     if (sol == error_status_of_nearint) continue;
     assert(sol == 0 || sol == 1);
     assert(vid >= 0);
+    assert(vid < variaID_to_position.size());
     std::pair<int, int> pos = variaID_to_position[vid];
     assert(map_status[pos.first][pos.second] == 0);
-    map_status[pos.first][pos.second] = 1;
-    no_mine_block_to_be_clicked.push(pos);
+    if (sol == 0) {
+      map_status[pos.first][pos.second] = 1;
+      no_mine_block_to_be_clicked.push(pos);
+      std::cout<<"push ("<<pos.first<<","<<pos.second<<")"<<std::endl;
+    }
+    if (sol == 1) {
+      map_status[pos.first][pos.second] = -1;
+      std::cout<<"set ("<<pos.first<<","<<pos.second<<")"<<std::endl;
+    }
   }
 }
 /**
@@ -292,7 +330,9 @@ void PreProcessData() {
   // 3. interpret the result of Gaussian-Jordan Elimination,store the result in
   // map_status and push the newly found block that definitely has no mine
   // into no_mine_block_to_be_clicked
-  InterpretResult(GaussianJordanElimination(GenerateEquations()));
+  std::vector<std::vector<double> > equations = GenerateEquations();
+  equations = GaussianJordanElimination(equations);
+  InterpretResult(equations);
 }
 /**
  * @brief The definition of function TotalRandomGuess()
@@ -303,12 +343,14 @@ void PreProcessData() {
  */
 std::pair<int, int> TotalRandomGuess() {
   using namespace Client;
-  std::uniform_int_distribution<int> row_dist(0, rows - 1),
-      column_dist(0, columns - 1);
-  int row = row_dist(RawRnd), column = column_dist(RawRnd);
+  std::cout << "TotalRandomGuess" << std::endl;
+  // use a fixed random key
+  std::uniform_int_distribution<int> row_dis(0, rows - 1),
+      column_dis(0, columns - 1);
+  int row = row_dis(RawRnd), column = column_dis(RawRnd);
   while (map_status[row][column] != 0) {
-    row = row_dist(RawRnd);
-    column = column_dist(RawRnd);
+    row = row_dis(RawRnd);
+    column = column_dis(RawRnd);
   }
   return std::make_pair(row, column);
 }

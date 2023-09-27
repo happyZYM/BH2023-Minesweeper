@@ -95,6 +95,45 @@ void PreProcessData() {
         assert(game_map[i][j] >= '0' && game_map[i][j] <= '8');
         map_status[i][j] = 2;
       }
+  // scan the map and process the simplest case
+  for (int i = 0; i < rows; i++)
+    for (int j = 0; j < columns; j++)
+      if (map_status[i][j] == 2) {
+        int nearby_mines = game_map[i][j] - '0',
+            nearby_unkown =
+                0;  // nearby_mines is the number of mines in currently unknown
+                    // blocks that are adjacent to the block (i,j)
+        const int dx[8] = {-1, -1, -1, 0, 0, 1, 1, 1},
+                  dy[8] = {-1, 0, 1, -1, 1, -1, 0, 1};
+        for (int k = 0; k < 8; k++) {
+          int x = i + dx[k], y = j + dy[k];
+          if (x >= 0 && x < rows && y >= 0 && y < columns) {
+            if (map_status[x][y] == 0)
+              nearby_unkown++;
+            else if (map_status[x][y] == -1)
+              nearby_mines--;
+          }
+        }
+        if (nearby_unkown != 0) {
+          if (nearby_mines == 0) {
+            for (int k = 0; k < 8; k++) {
+              int x = i + dx[k], y = j + dy[k];
+              if (x >= 0 && x < rows && y >= 0 && y < columns &&
+                  map_status[x][y] == 0) {
+                map_status[x][y] = 1;
+                no_mine_block_to_be_clicked.push(std::make_pair(x, y));
+              }
+            }
+          } else if (nearby_mines == nearby_unkown) {
+            for (int k = 0; k < 8; k++) {
+              int x = i + dx[k], y = j + dy[k];
+              if (x >= 0 && x < rows && y >= 0 && y < columns &&
+                  map_status[x][y] == 0)
+                map_status[x][y] = -1;
+            }
+          }
+        }
+      }
   // find all unkown blocks that are adjacnent to clicked blocks and prepare for
   // Gaussian Elimination
 
@@ -105,6 +144,23 @@ void PreProcessData() {
   // no_mine_block_to_be_clicked
 }
 /**
+ * @brief The definition of function TotalRandomGuess()
+ *
+ * @details This function is designed to make a total random guess when there is
+ * no definite none-mine block to be clicked.
+ */
+std::pair<int, int> TotalRandomGuess() {
+  using namespace Client;
+  std::uniform_int_distribution<int> row_dist(0, rows - 1),
+      column_dist(0, columns - 1);
+  int row = row_dist(RawRnd), column = column_dist(RawRnd);
+  while (map_status[row][column] != 0) {
+    row = row_dist(RawRnd);
+    column = column_dist(RawRnd);
+  }
+  return std::make_pair(row, column);
+}
+/**
  * @brief The definition of function MakeBestGuess()
  *
  * @details This function is designed to make the best guess when there is no
@@ -112,6 +168,8 @@ void PreProcessData() {
  */
 std::pair<int, int> MakeBestGuess() {
   using namespace Client;
+  // just make a total random guess before a better algorithm is designed
+  return TotalRandomGuess();
   return std::make_pair(0, 0);
 }
 /**

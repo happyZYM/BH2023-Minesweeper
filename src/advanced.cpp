@@ -15,7 +15,7 @@ void Execute(int row, int column) {
   std::string str;
   VisitBlock(row, column);
   if (game_state != 0) {
-    PrintMap(); // this line may help you debug
+    // PrintMap(); // this line may help you debug
     ExitGame();
   }
   std::ostringstream oss;
@@ -35,8 +35,8 @@ void Execute(int row, int column) {
                                 // stores the output recently
   ReadMap();
   std::cin.rdbuf(old_input_buffer);  // Restore the input buffer
-  PrintMap();                        // These two lines may help you debug
-  std::cout << std::endl;
+  //   PrintMap();                        // These two lines may help you debug
+  //   std::cout << std::endl;
 }
 
 int main() {

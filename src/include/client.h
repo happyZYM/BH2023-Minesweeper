@@ -54,8 +54,8 @@ void InitGame() {
  *     01?
  */
 namespace Client {
-const unsigned int RndSeed = 21212303;  // std::random_device{}();
-std::mt19937 RawRnd(RndSeed);           // a basic random generator
+const unsigned int RndSeed = std::random_device{}();
+std::mt19937 RawRnd(RndSeed);  // a basic random generator
 const int max_size = 35;
 char game_map[max_size][max_size];  // store the raw game map in format of char
 std::queue<std::pair<int, int> >
@@ -132,6 +132,7 @@ std::vector<std::pair<int, int> > variaID_to_position;
  * @details This function is designed to print the equations for debugging
  */
 void PrintEquations(std::vector<std::vector<double> > equations) {
+  return;
   std::cout << "equations:" << std::endl;
   for (int i = 0; i < equations.size(); i++) {
     for (int j = 0; j < equations[i].size(); j++)
@@ -266,8 +267,8 @@ std::vector<std::vector<double> > GaussianJordanElimination(
  * equations
  */
 void InterpretResult(std::vector<std::vector<double> > equations) {
-  std::cout << "InterpretResult" << std::endl;
-  PrintEquations(equations);
+  // std::cout << "InterpretResult" << std::endl;
+  // PrintEquations(equations);
   int n = equations.size();
   if (n == 0) return;
   int m = equations[0].size();
@@ -293,11 +294,13 @@ void InterpretResult(std::vector<std::vector<double> > equations) {
     if (sol == 0) {
       map_status[pos.first][pos.second] = 1;
       no_mine_block_to_be_clicked.push(pos);
-      std::cout<<"push ("<<pos.first<<","<<pos.second<<")"<<std::endl;
+      // std::cout << "push (" << pos.first << "," << pos.second << ")"
+      //           << std::endl;
     }
     if (sol == 1) {
       map_status[pos.first][pos.second] = -1;
-      std::cout<<"set ("<<pos.first<<","<<pos.second<<")"<<std::endl;
+      // std::cout << "set (" << pos.first << "," << pos.second << ")"
+      //           << std::endl;
     }
   }
 }
@@ -343,8 +346,7 @@ void PreProcessData() {
  */
 std::pair<int, int> TotalRandomGuess() {
   using namespace Client;
-  std::cout << "TotalRandomGuess" << std::endl;
-  // use a fixed random key
+  // std::cout << "TotalRandomGuess" << std::endl;
   std::uniform_int_distribution<int> row_dis(0, rows - 1),
       column_dis(0, columns - 1);
   int row = row_dis(RawRnd), column = column_dis(RawRnd);

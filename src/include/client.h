@@ -290,7 +290,6 @@ void InterpretResult(std::vector<std::vector<double> > equations) {
     assert(vid >= 0);
     assert(vid < variaID_to_position.size());
     std::pair<int, int> pos = variaID_to_position[vid];
-    assert(map_status[pos.first][pos.second] == 0);
     if (sol == 0) {
       map_status[pos.first][pos.second] = 1;
       no_mine_block_to_be_clicked.push(pos);

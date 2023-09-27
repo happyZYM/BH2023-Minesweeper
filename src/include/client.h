@@ -132,7 +132,7 @@ std::vector<std::pair<int, int> > variaID_to_position;
  * @details This function is designed to print the equations for debugging
  */
 void PrintEquations(std::vector<std::vector<double> > equations) {
-  return;
+  // return;
   std::cout << "equations:" << std::endl;
   for (int i = 0; i < equations.size(); i++) {
     for (int j = 0; j < equations[i].size(); j++)
@@ -216,7 +216,7 @@ std::vector<std::vector<double> > GenerateEquations() {
                    [position_to_variaID[std::make_pair(nr, nc)]] = 1;
         }
       }
-  PrintEquations(equations);
+  // PrintEquations(equations);
   return equations;
 }
 /**

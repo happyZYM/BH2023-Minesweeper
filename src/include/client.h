@@ -425,8 +425,9 @@ inline double GetProb(double default_p,const std::vector<double> &ps)
 {
   if(ps.empty()) return default_p;
   double res=0;
-  for(int i=0;i<ps.size();i++) res+=ps[i];
-  return res/ps.size();
+  const double v=2;
+  for(int i=0;i<ps.size();i++) res+=pow(ps[i],v);
+  return pow(res/ps.size(),1.0/v);
 }
 /**
  * @brief The definition of function SimpleGuess()

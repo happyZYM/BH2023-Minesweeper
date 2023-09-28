@@ -439,7 +439,7 @@ std::pair<int, int> SimpleGuess() {
   using namespace Client;
   // std::cout << "SimpleGuess" << std::endl;
   std::vector<double> probability[max_size][max_size];
-  double default_probability = 0.18;
+  double default_probability = 0.06;
   int total_known = 0, total_known_with_mine = 0;
   for (int i = 0; i < rows; i++)
     for (int j = 0; j < columns; j++)

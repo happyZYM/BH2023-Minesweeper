@@ -252,7 +252,7 @@ std::vector<std::vector<double> > GaussianJordanElimination(
     n = equations.size();
     for (int i = 0; i < n; i++) {
       int pivot = i;
-      if(i>=m-1) break;
+      if (i >= m - 1) break;
       for (int j = i + 1; j < n; j++)
         if (abs(equations[j][i]) > abs(equations[pivot][i])) pivot = j;
       std::swap(equations[i], equations[pivot]);
@@ -421,6 +421,13 @@ std::pair<int, int> TotalRandomGuess() {
   }
   return std::make_pair(row, column);
 }
+inline double GetProb(double default_p,const std::vector<double> &ps)
+{
+  if(ps.empty()) return default_p;
+  double res=0;
+  for(int i=0;i<ps.size();i++) res+=ps[i];
+  return res/ps.size();
+}
 /**
  * @brief The definition of function SimpleGuess()
  *
@@ -441,7 +448,7 @@ std::pair<int, int> SimpleGuess() {
       }
   if (total_known > 5)
     default_probability = (double)(total_known_with_mine) / (total_known);
-  // if((double)(total_known)/(rows*columns)<0.3) return TotalRandomGuess();
+  // if((double)(total_known)/(rows*columns)<0.15) return TotalRandomGuess();
   for (int i = 0; i < rows; i++)
     for (int j = 0; j < columns; j++)
       if (map_status[i][j] == 2) {
@@ -474,22 +481,8 @@ std::pair<int, int> SimpleGuess() {
   for (int i = 0; i < rows; i++)
     for (int j = 0; j < columns; j++)
       if (map_status[i][j] == 0) {
-        double current_prob = default_probability;
-        if (probability[best_guess.first][best_guess.second].size() > 0) {
-          current_prob = 0;
-          for (int k = 0;
-               k < probability[best_guess.first][best_guess.second].size(); k++)
-            current_prob += probability[best_guess.first][best_guess.second][k];
-          current_prob /=
-              probability[best_guess.first][best_guess.second].size();
-        }
-        double this_prob = default_probability;
-        if (probability[i][j].size() > 0) {
-          this_prob = 0;
-          for (int k = 0; k < probability[i][j].size(); k++)
-            this_prob += probability[i][j][k];
-          this_prob /= probability[i][j].size();
-        }
+        double current_prob=GetProb(default_probability,probability[best_guess.first][best_guess.second]);
+        double this_prob=GetProb(default_probability,probability[i][j]);
         if (this_prob < current_prob) {
           best_guess.first = i;
           best_guess.second = j;

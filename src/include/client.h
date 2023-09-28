@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cmath>
 #include <cstring>
 #include <iostream>
 #include <map>
@@ -251,6 +252,7 @@ std::vector<std::vector<double> > GaussianJordanElimination(
     n = equations.size();
     for (int i = 0; i < n; i++) {
       int pivot = i;
+      if(i>=m-1) break;
       for (int j = i + 1; j < n; j++)
         if (abs(equations[j][i]) > abs(equations[pivot][i])) pivot = j;
       std::swap(equations[i], equations[pivot]);
@@ -437,7 +439,7 @@ std::pair<int, int> SimpleGuess() {
         total_known++;
         if (map_status[i][j] == -1) total_known_with_mine++;
       }
-  if (total_known > 8)
+  if (total_known > 5)
     default_probability = (double)(total_known_with_mine) / (total_known);
   // if((double)(total_known)/(rows*columns)<0.3) return TotalRandomGuess();
   for (int i = 0; i < rows; i++)

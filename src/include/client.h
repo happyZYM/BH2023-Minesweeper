@@ -247,7 +247,7 @@ std::vector<std::vector<double> > GaussianJordanElimination(
   std::vector<double> equa_template;
   equa_template.resize(m);
   // assert(n + 1 == m);
-  for (int tot = 0; tot < 3; tot++) {
+  for (int tot = 0; tot < 5; tot++) {
     n = equations.size();
     for (int i = 0; i < n; i++) {
       int pivot = i;
@@ -276,7 +276,7 @@ std::vector<std::vector<double> > GaussianJordanElimination(
         total_num += v;
       }
       if (error_occur) continue;
-      if(total_num==1) continue;
+      if (total_num == 1) continue;
       if (NearbyInt(equations[i][m - 1]) == 0) {
         for (int j = 0; j < m - 1; j++)
           if (NearbyInt(equations[i][j]) > 0) {
@@ -284,8 +284,13 @@ std::vector<std::vector<double> > GaussianJordanElimination(
             for (int k = 0; k < m; k++) equations[equations.size() - 1][k] = 0;
             equations[equations.size() - 1][m - 1] = 0;
             equations[equations.size() - 1][j] = 1;
+            std::pair<int, int> pos = variaID_to_position[j];
+            if (map_status[pos.first][pos.second] == 0) {
+              map_status[pos.first][pos.second] = 1;
+              no_mine_block_to_be_clicked.push(pos);
+            }
           }
-        equations.erase(equations.begin()+i);
+        equations.erase(equations.begin() + i);
         i--;
       } else if (NearbyInt(equations[i][m - 1]) == total_num) {
         for (int j = 0; j < m - 1; j++)
@@ -294,8 +299,12 @@ std::vector<std::vector<double> > GaussianJordanElimination(
             for (int k = 0; k < m; k++) equations[equations.size() - 1][k] = 0;
             equations[equations.size() - 1][m - 1] = 1;
             equations[equations.size() - 1][j] = 1;
+            std::pair<int, int> pos = variaID_to_position[j];
+            if (map_status[pos.first][pos.second] == 0) {
+              map_status[pos.first][pos.second] = -1;
+            }
           }
-        equations.erase(equations.begin()+i);
+        equations.erase(equations.begin() + i);
         i--;
       }
     }
@@ -385,7 +394,7 @@ void PreProcessData() {
   // 3. interpret the result of Gaussian-Jordan Elimination,store the result in
   // map_status and push the newly found block that definitely has no mine
   // into no_mine_block_to_be_clicked
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < 8; i++) {
     std::vector<std::vector<double> > equations = GenerateEquations();
     equations = GaussianJordanElimination(equations);
     InterpretResult(equations);

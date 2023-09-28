@@ -28,6 +28,7 @@ void CheckResult() {
     }
 #undef ERROR_IN_RESULT
 }
+bool clicked[100][100];
 /**
  * @brief The implementation of function Execute
  * @details Use it only when trying advanced task. Do NOT modify it before
@@ -35,6 +36,9 @@ void CheckResult() {
  */
 void Execute(int row, int column) {
   CheckResult();
+  assert(!clicked[row][column]);
+  clicked[row][column] = true;
+  // above are some checks
   std::string str;
   VisitBlock(row, column);
   if (game_state != 0) {

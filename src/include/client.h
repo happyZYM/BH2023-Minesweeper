@@ -357,6 +357,84 @@ std::pair<int, int> TotalRandomGuess() {
   return std::make_pair(row, column);
 }
 /**
+ * @brief The definition of function SimpleGuess()
+ *
+ * @details This function is designed to make a guess when there is no definite
+ * none-mine block to be clicked using simple algorithm.
+ */
+std::pair<int, int> SimpleGuess() {
+  using namespace Client;
+  // std::cout << "SimpleGuess" << std::endl;
+  std::vector<double> probability[max_size][max_size];
+  double default_probability = 0.18;
+  int total_known = 0, total_known_with_mine = 0;
+  for (int i = 0; i < rows; i++)
+    for (int j = 0; j < columns; j++)
+      if (map_status[i][j] != 0) {
+        total_known++;
+        if (map_status[i][j] == -1) total_known_with_mine++;
+      }
+  if (total_known > 8)
+    default_probability = (double)(total_known_with_mine) / (total_known);
+  // if((double)(total_known)/(rows*columns)<0.3) return TotalRandomGuess();
+  for (int i = 0; i < rows; i++)
+    for (int j = 0; j < columns; j++)
+      if (map_status[i][j] == 2) {
+        int nearby_mines = game_map[i][j] - '0',
+            nearby_unkown =
+                0;  // nearby_mines is the number of mines in currently unknown
+                    // blocks that are adjacent to the block (i,j)
+        const int dx[8] = {-1, -1, -1, 0, 0, 1, 1, 1},
+                  dy[8] = {-1, 0, 1, -1, 1, -1, 0, 1};
+        for (int k = 0; k < 8; k++) {
+          int x = i + dx[k], y = j + dy[k];
+          if (x >= 0 && x < rows && y >= 0 && y < columns) {
+            if (map_status[x][y] == 0)
+              nearby_unkown++;
+            else if (map_status[x][y] == -1)
+              nearby_mines--;
+          }
+        }
+        if(nearby_unkown==0) continue;
+        for (int k = 0; k < 8; k++) {
+          int x = i + dx[k], y = j + dy[k];
+          if (x >= 0 && x < rows && y >= 0 && y < columns) {
+            if (map_status[x][y] == 0)
+              probability[x][y].push_back((double)(nearby_mines) /
+                                          (nearby_unkown));
+          }
+        }
+      }
+  std::pair<int, int> best_guess = TotalRandomGuess();
+  for(int i=0;i<rows;i++)
+    for(int j=0;j<columns;j++)
+      if(map_status[i][j]==0)
+      {
+        double current_prob=default_probability;
+        if(probability[best_guess.first][best_guess.second].size()>0)
+        {
+          current_prob=0;
+          for(int k=0;k<probability[best_guess.first][best_guess.second].size();k++)
+            current_prob+=probability[best_guess.first][best_guess.second][k];
+          current_prob/=probability[best_guess.first][best_guess.second].size();
+        }
+        double this_prob=default_probability;
+        if(probability[i][j].size()>0)
+        {
+          this_prob=0;
+          for(int k=0;k<probability[i][j].size();k++)
+            this_prob+=probability[i][j][k];
+          this_prob/=probability[i][j].size();
+        }
+        if(this_prob<current_prob)
+        {
+          best_guess.first=i;
+          best_guess.second=j;
+        }
+      }
+  return best_guess;
+}
+/**
  * @brief The definition of function MakeBestGuess()
  *
  * @details This function is designed to make the best guess when there is no
@@ -365,7 +443,8 @@ std::pair<int, int> TotalRandomGuess() {
 std::pair<int, int> MakeBestGuess() {
   using namespace Client;
   // just make a total random guess before a better algorithm is designed
-  return TotalRandomGuess();
+  //   return TotalRandomGuess();
+  return SimpleGuess();
   return std::make_pair(0, 0);
 }
 /**

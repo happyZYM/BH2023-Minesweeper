@@ -421,13 +421,12 @@ std::pair<int, int> TotalRandomGuess() {
   }
   return std::make_pair(row, column);
 }
-inline double GetProb(double default_p,const std::vector<double> &ps)
-{
-  if(ps.empty()) return default_p;
-  double res=0;
-  const double v=2;
-  for(int i=0;i<ps.size();i++) res+=pow(ps[i],v);
-  return pow(res/ps.size(),1.0/v);
+inline double GetProb(double default_p, const std::vector<double> &ps) {
+  if (ps.empty()) return default_p;
+  double res = 0;
+  const double v = 2;
+  for (int i = 0; i < ps.size(); i++) res += pow(ps[i], v);
+  return pow(res / ps.size(), 1.0 / v);
 }
 /**
  * @brief The definition of function SimpleGuess()
@@ -482,8 +481,10 @@ std::pair<int, int> SimpleGuess() {
   for (int i = 0; i < rows; i++)
     for (int j = 0; j < columns; j++)
       if (map_status[i][j] == 0) {
-        double current_prob=GetProb(default_probability,probability[best_guess.first][best_guess.second]);
-        double this_prob=GetProb(default_probability,probability[i][j]);
+        double current_prob =
+            GetProb(default_probability,
+                    probability[best_guess.first][best_guess.second]);
+        double this_prob = GetProb(default_probability, probability[i][j]);
         if (this_prob < current_prob) {
           best_guess.first = i;
           best_guess.second = j;

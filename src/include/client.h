@@ -153,6 +153,7 @@ void PrintEquations(std::vector<std::vector<double> > equations) {
     std::cout << std::endl;
   }
 }
+inline int RandIntLessThan(int n) { return RawRnd() % n; }
 /**
  * @brief The definition of function GenerateEquations()
  *
@@ -217,6 +218,8 @@ std::vector<std::vector<double> > GenerateEquations() {
         }
       }
   // PrintEquations(equations);
+  // randome shuffle lines of equations using RawRnd
+  std::random_shuffle(equations.begin(), equations.end(), RandIntLessThan);
   return equations;
 }
 /**
@@ -241,20 +244,61 @@ std::vector<std::vector<double> > GaussianJordanElimination(
   int n = equations.size();
   if (n == 0) return equations;
   int m = equations[0].size();
+  std::vector<double> equa_template;
+  equa_template.resize(m);
   // assert(n + 1 == m);
-  for (int i = 0; i < n; i++) {
-    int pivot = i;
-    for (int j = i + 1; j < n; j++)
-      if (abs(equations[j][i]) > abs(equations[pivot][i])) pivot = j;
-    std::swap(equations[i], equations[pivot]);
-    if (abs(equations[i][i]) < eps) continue;
-    const double pivot_value = equations[i][i];
-    for (int j = 0; j < m; j++) equations[i][j] /= pivot_value;
-    for (int j = 0; j < n; j++)
-      if (j != i) {
-        const double tmp = equations[j][i];
-        for (int k = 0; k < m; k++) equations[j][k] -= tmp * equations[i][k];
+  for (int tot = 0; tot < 3; tot++) {
+    n = equations.size();
+    for (int i = 0; i < n; i++) {
+      int pivot = i;
+      for (int j = i + 1; j < n; j++)
+        if (abs(equations[j][i]) > abs(equations[pivot][i])) pivot = j;
+      std::swap(equations[i], equations[pivot]);
+      if (abs(equations[i][i]) < eps) continue;
+      const double pivot_value = equations[i][i];
+      for (int j = 0; j < m; j++) equations[i][j] /= pivot_value;
+      for (int j = 0; j < n; j++)
+        if (j != i) {
+          const double tmp = equations[j][i];
+          for (int k = 0; k < m; k++) equations[j][k] -= tmp * equations[i][k];
+        }
+    }
+    // continue;
+    for (int i = 0; i < equations.size(); i++) {
+      bool error_occur = false;
+      int total_num = 0;
+      for (int j = 0; j < m - 1; j++) {
+        int v = NearbyInt(equations[i][j]);
+        if (v == error_status_of_nearint || v < 0) {
+          error_occur = true;
+          break;
+        }
+        total_num += v;
       }
+      if (error_occur) continue;
+      if(total_num==1) continue;
+      if (NearbyInt(equations[i][m - 1]) == 0) {
+        for (int j = 0; j < m - 1; j++)
+          if (NearbyInt(equations[i][j]) > 0) {
+            equations.push_back(equa_template);
+            for (int k = 0; k < m; k++) equations[equations.size() - 1][k] = 0;
+            equations[equations.size() - 1][m - 1] = 0;
+            equations[equations.size() - 1][j] = 1;
+          }
+        equations.erase(equations.begin()+i);
+        i--;
+      } else if (NearbyInt(equations[i][m - 1]) == total_num) {
+        for (int j = 0; j < m - 1; j++)
+          if (NearbyInt(equations[i][j]) > 0) {
+            equations.push_back(equa_template);
+            for (int k = 0; k < m; k++) equations[equations.size() - 1][k] = 0;
+            equations[equations.size() - 1][m - 1] = 1;
+            equations[equations.size() - 1][j] = 1;
+          }
+        equations.erase(equations.begin()+i);
+        i--;
+      }
+    }
   }
   return equations;
 }
@@ -286,11 +330,12 @@ void InterpretResult(std::vector<std::vector<double> > equations) {
     if (number_of_1 != 1) continue;
     int sol = NearbyInt(equations[i][m - 1]);
     if (sol == error_status_of_nearint) continue;
-    if(sol!=0&&sol!=1)
-    {
-      std::cerr<<"sol="<<sol<<std::endl;
-      std::cerr<<"one="<<number_of_1<<" not one not zero="<<number_of_non1<<std::endl;
-      std::cerr<<NearbyInt(equations[i][m - 1])<<' '<<equations[i][m - 1]<<std::endl;
+    if (sol != 0 && sol != 1) {
+      std::cerr << "sol=" << sol << std::endl;
+      std::cerr << "one=" << number_of_1
+                << " not one not zero=" << number_of_non1 << std::endl;
+      std::cerr << NearbyInt(equations[i][m - 1]) << ' ' << equations[i][m - 1]
+                << std::endl;
       PrintEquations(equations);
     }
     assert(sol == 0 || sol == 1);
@@ -340,9 +385,11 @@ void PreProcessData() {
   // 3. interpret the result of Gaussian-Jordan Elimination,store the result in
   // map_status and push the newly found block that definitely has no mine
   // into no_mine_block_to_be_clicked
-  std::vector<std::vector<double> > equations = GenerateEquations();
-  equations = GaussianJordanElimination(equations);
-  InterpretResult(equations);
+  for (int i = 0; i < 4; i++) {
+    std::vector<std::vector<double> > equations = GenerateEquations();
+    equations = GaussianJordanElimination(equations);
+    InterpretResult(equations);
+  }
 }
 /**
  * @brief The definition of function TotalRandomGuess()
@@ -402,7 +449,7 @@ std::pair<int, int> SimpleGuess() {
               nearby_mines--;
           }
         }
-        if(nearby_unkown==0) continue;
+        if (nearby_unkown == 0) continue;
         for (int k = 0; k < 8; k++) {
           int x = i + dx[k], y = j + dy[k];
           if (x >= 0 && x < rows && y >= 0 && y < columns) {
@@ -413,30 +460,28 @@ std::pair<int, int> SimpleGuess() {
         }
       }
   std::pair<int, int> best_guess = TotalRandomGuess();
-  for(int i=0;i<rows;i++)
-    for(int j=0;j<columns;j++)
-      if(map_status[i][j]==0)
-      {
-        double current_prob=default_probability;
-        if(probability[best_guess.first][best_guess.second].size()>0)
-        {
-          current_prob=0;
-          for(int k=0;k<probability[best_guess.first][best_guess.second].size();k++)
-            current_prob+=probability[best_guess.first][best_guess.second][k];
-          current_prob/=probability[best_guess.first][best_guess.second].size();
+  for (int i = 0; i < rows; i++)
+    for (int j = 0; j < columns; j++)
+      if (map_status[i][j] == 0) {
+        double current_prob = default_probability;
+        if (probability[best_guess.first][best_guess.second].size() > 0) {
+          current_prob = 0;
+          for (int k = 0;
+               k < probability[best_guess.first][best_guess.second].size(); k++)
+            current_prob += probability[best_guess.first][best_guess.second][k];
+          current_prob /=
+              probability[best_guess.first][best_guess.second].size();
         }
-        double this_prob=default_probability;
-        if(probability[i][j].size()>0)
-        {
-          this_prob=0;
-          for(int k=0;k<probability[i][j].size();k++)
-            this_prob+=probability[i][j][k];
-          this_prob/=probability[i][j].size();
+        double this_prob = default_probability;
+        if (probability[i][j].size() > 0) {
+          this_prob = 0;
+          for (int k = 0; k < probability[i][j].size(); k++)
+            this_prob += probability[i][j][k];
+          this_prob /= probability[i][j].size();
         }
-        if(this_prob<current_prob)
-        {
-          best_guess.first=i;
-          best_guess.second=j;
+        if (this_prob < current_prob) {
+          best_guess.first = i;
+          best_guess.second = j;
         }
       }
   return best_guess;

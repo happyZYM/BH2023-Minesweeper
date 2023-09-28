@@ -1,3 +1,8 @@
+# references目录下的参考信息来源
+- <https://github.com/DavidNHill/Minesweeper>
+- <https://github.com/DavidNHill/Minesweeper2>
+- <https://dash.harvard.edu/bitstream/handle/1/14398552/BECERRA-SENIORTHESIS-2015.pdf>
+___
 # Minesweeper-2023
 > ACM 班 2023 级程序设计第一次大作业
 

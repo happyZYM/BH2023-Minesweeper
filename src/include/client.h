@@ -424,7 +424,8 @@ std::pair<int, int> TotalRandomGuess() {
 inline double GetProb(double default_p, const std::vector<double> &ps) {
   if (ps.empty()) return default_p;
   double res = 0;
-  const double v = 2;
+  const double v =
+      2;  // use root mean square to estimate the probability in a cautious way
   for (int i = 0; i < ps.size(); i++) res += pow(ps[i], v);
   return pow(res / ps.size(), 1.0 / v);
 }

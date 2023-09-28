@@ -2,5 +2,4 @@
 .vscode/
 build/
 src/std/
-info/
 tmp/

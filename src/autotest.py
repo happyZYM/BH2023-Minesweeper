@@ -74,7 +74,7 @@ XXX..X....X.XX..X...
 .X...X.XX........X.X
 0 10"""
 ]
-mine_rate=0.15
+mine_rate=0.133
 total_round=0
 win_round=0
 for i in range(0,10):
@@ -96,8 +96,8 @@ input("Press Enter to continue...")
 
 while True:
 	# randomly generate n,m in [2,30]
-	n=random.randint(2,30)
-	m=random.randint(2,30)
+	n=random.randint(20,30)
+	m=random.randint(20,30)
 	# print(n,m)
 	# randomly generate mine_rate in [0,1]
 	#mine_rate=random.random()

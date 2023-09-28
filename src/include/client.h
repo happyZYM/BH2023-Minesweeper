@@ -228,7 +228,7 @@ std::vector<std::vector<double> > GenerateEquations() {
  */
 const double eps = 1e-6;
 const int error_status_of_nearint = -0x3f3f3f3f;
-inline int nearint(double v) {
+inline int NearbyInt(double v) {
   int raw = v + 0.5;
   if (abs(v - raw) < eps)
     return raw;
@@ -277,15 +277,22 @@ void InterpretResult(std::vector<std::vector<double> > equations) {
     // std::cout << "equations[" << i << "]:" << std::endl;
     int number_of_1 = 0, number_of_non1 = 0, vid = -1;
     for (int j = 0; j < m - 1; j++)
-      if (nearbyint(equations[i][j]) == 1) {
+      if (NearbyInt(equations[i][j]) == 1) {
         number_of_1++;
         vid = j;
-      } else if (nearbyint(equations[i][j]) != 0)
+      } else if (NearbyInt(equations[i][j]) != 0)
         number_of_non1++;
     if (number_of_non1) continue;
     if (number_of_1 != 1) continue;
-    int sol = nearbyint(equations[i][m - 1]);
+    int sol = NearbyInt(equations[i][m - 1]);
     if (sol == error_status_of_nearint) continue;
+    if(sol!=0&&sol!=1)
+    {
+      std::cerr<<"sol="<<sol<<std::endl;
+      std::cerr<<"one="<<number_of_1<<" not one not zero="<<number_of_non1<<std::endl;
+      std::cerr<<NearbyInt(equations[i][m - 1])<<' '<<equations[i][m - 1]<<std::endl;
+      PrintEquations(equations);
+    }
     assert(sol == 0 || sol == 1);
     assert(vid >= 0);
     assert(vid < variaID_to_position.size());

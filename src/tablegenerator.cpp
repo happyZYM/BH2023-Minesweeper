@@ -196,7 +196,7 @@ size_t compressData(const unsigned char *inputData, size_t inputSize,
                     unsigned char *compressedData, size_t compressedSize) {
   mz_ulong compressedSizeOut = compressedSize;
   int compressResult = mz_compress2(compressedData, &compressedSizeOut,
-                                    inputData, inputSize, MZ_BEST_COMPRESSION);
+                                    inputData, inputSize, MZ_UBER_COMPRESSION);
 
   if (compressResult != Z_OK) {
     throw(std::runtime_error("Compression failed."));

@@ -8,9 +8,66 @@ typedef long long LL;
 const int buf_size = 4412555 * 4;
 unsigned char buf[buf_size], data[buf_size];
 bool already_have[14348907];
-std::unordered_map<LL,unsigned char> visible_to_probability;
+// std::unordered_map<LL,unsigned char> visible_to_probability;
 int rid[15] = {0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2};
 int cid[15] = {0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 0, 1, 2, 3, 4};
+class HashTable
+{
+	struct Node
+	{
+		LL key;
+		unsigned char value;
+		Node* next;
+		Node(LL k,unsigned char v):key(k),value(v),next(nullptr){}
+	};
+	Node* table[14348907];
+public:
+	HashTable()
+	{
+		for(int i=0;i<14348907;i++)
+			table[i]=nullptr;
+	}
+	~HashTable()
+	{
+		for(int i=0;i<14348907;i++)
+		{
+			Node* p=table[i];
+			while(p)
+			{
+				Node* q=p->next;
+				delete p;
+				p=q;
+			}
+		}
+	}
+	unsigned char& operator[](LL key)
+	{
+		int index=key%14348907;
+		Node* p=table[index];
+		while(p)
+		{
+			if(p->key==key)
+				return p->value;
+			p=p->next;
+		}
+		p=new Node(key,0);
+		p->next=table[index];
+		table[index]=p;
+		return p->value;
+	}
+	bool have(LL key)
+	{
+		int index=key%14348907;
+		Node* p=table[index];
+		while(p)
+		{
+			if(p->key==key)
+				return true;
+			p=p->next;
+		}
+		return false;
+	}
+}visible_to_probability;
 }  // namespace DataLoad
 void LoadData() {
   using namespace DataLoad;
@@ -18,7 +75,7 @@ void LoadData() {
   size_t data_length = decompressData(buf, raw_length, data, buf_size);
 //   std::cout<<"decompress finished.\n"<<std::endl;
 //   already_have.rehash(4412555);
-  visible_to_probability.rehash(4412555);
+//   visible_to_probability.rehash(4412555);
   const LL raw_line_base = 243;
   const LL vis_line_base = 100000;
   int cnt=0;

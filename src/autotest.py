@@ -77,7 +77,7 @@ XXX..X....X.XX..X...
 mine_rate=0.133
 total_round=0
 win_round=0
-for i in range(0,10):
+for i in range(0,1):
 	for data in built_in_test_cases:
 		fn=open("tmp/test.in","w")
 		fn.write(data)

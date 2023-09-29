@@ -520,11 +520,9 @@ double EstimateProb(std::pair<int, int> pos, double default_p = 0.06) {
         (visible_status % vis_line_base) * vis_line_base * vis_line_base +
         ((visible_status / vis_line_base) % vis_line_base) * vis_line_base +
         visible_status / (vis_line_base * vis_line_base);
-    if (DataLoad::visible_to_probability.find(visible_status) !=
-        DataLoad::visible_to_probability.end())
+    if (DataLoad::visible_to_probability.have(visible_status))
       ps.push_back(DataLoad::visible_to_probability[visible_status] / 255.0);
-    if (DataLoad::visible_to_probability.find(invers_vis_status) !=
-        DataLoad::visible_to_probability.end())
+    if (DataLoad::visible_to_probability.have(invers_vis_status))
       ps.push_back(DataLoad::visible_to_probability[invers_vis_status] / 255.0);
   }
   if (pos.second - 3 >= 0) {
@@ -540,11 +538,9 @@ double EstimateProb(std::pair<int, int> pos, double default_p = 0.06) {
         (visible_status % vis_line_base) * vis_line_base * vis_line_base +
         ((visible_status / vis_line_base) % vis_line_base) * vis_line_base +
         visible_status / (vis_line_base * vis_line_base);
-    if (DataLoad::visible_to_probability.find(visible_status) !=
-        DataLoad::visible_to_probability.end())
+    if (DataLoad::visible_to_probability.have(visible_status))
       ps.push_back(DataLoad::visible_to_probability[visible_status] / 255.0);
-    if (DataLoad::visible_to_probability.find(invers_vis_status) !=
-        DataLoad::visible_to_probability.end())
+    if (DataLoad::visible_to_probability.have(invers_vis_status))
       ps.push_back(DataLoad::visible_to_probability[invers_vis_status] / 255.0);
   }
   if (pos.first + 3 <= rows - 1) {
@@ -560,11 +556,9 @@ double EstimateProb(std::pair<int, int> pos, double default_p = 0.06) {
         (visible_status % vis_line_base) * vis_line_base * vis_line_base +
         ((visible_status / vis_line_base) % vis_line_base) * vis_line_base +
         visible_status / (vis_line_base * vis_line_base);
-    if (DataLoad::visible_to_probability.find(visible_status) !=
-        DataLoad::visible_to_probability.end())
+    if (DataLoad::visible_to_probability.have(visible_status))
       ps.push_back(DataLoad::visible_to_probability[visible_status] / 255.0);
-    if (DataLoad::visible_to_probability.find(invers_vis_status) !=
-        DataLoad::visible_to_probability.end())
+    if (DataLoad::visible_to_probability.have(invers_vis_status))
       ps.push_back(DataLoad::visible_to_probability[invers_vis_status] / 255.0);
   }
   if (pos.first - 3 >= 0) {
@@ -580,11 +574,9 @@ double EstimateProb(std::pair<int, int> pos, double default_p = 0.06) {
         (visible_status % vis_line_base) * vis_line_base * vis_line_base +
         ((visible_status / vis_line_base) % vis_line_base) * vis_line_base +
         visible_status / (vis_line_base * vis_line_base);
-    if (DataLoad::visible_to_probability.find(visible_status) !=
-        DataLoad::visible_to_probability.end())
+    if (DataLoad::visible_to_probability.have(visible_status))
       ps.push_back(DataLoad::visible_to_probability[visible_status] / 255.0);
-    if (DataLoad::visible_to_probability.find(invers_vis_status) !=
-        DataLoad::visible_to_probability.end())
+    if (DataLoad::visible_to_probability.have(invers_vis_status) )
       ps.push_back(DataLoad::visible_to_probability[invers_vis_status] / 255.0);
   }
   for (int i = 0; i < ps.size(); i++) res += ps[i] * ps[i];

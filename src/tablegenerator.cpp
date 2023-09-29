@@ -11,6 +11,10 @@
 
 #include "miniz.h"
 
+/**
+ * The following code is copied from
+ * https://github.com/ReneNyffenegger/cpp-base64 and modified by me.
+ */
 static const char *base64_chars[2] = {
     "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     "abcdefghijklmnopqrstuvwxyz"
@@ -94,6 +98,37 @@ std::string base64_encode(unsigned char const *bytes_to_encode, size_t in_len,
 
   return ret;
 }
+/**
+ * @brief The definition of function base64_decode
+ * @param const std::string& string_to_decode The string to decode
+ * @param unsigned char const * bytes_to_decode The decoded string
+ * @param size_t max_len The max length of the decoded string
+ * @param bool url If true, then the url base64 alphabet is used
+ * @return size_t The real length of the decoded string
+ */
+size_t base64_decode(const std::string &string_to_decode,
+                     unsigned char *const bytes_to_decode, size_t max_len,
+                     bool url = false) {
+  size_t real_length = 0;
+  unsigned char trailing_char = url ? '.' : '=';
+  const char *base64_chars_ = base64_chars[url];
+  size_t len = string_to_decode.length();
+  for (size_t i = 0; i < len; i += 4) {
+    unsigned int pos0 = pos_of_char(string_to_decode[i + 0]);
+    unsigned int pos1 = pos_of_char(string_to_decode[i + 1]);
+    bytes_to_decode[real_length++] = ((pos0 << 2) + ((pos1 & 0x30) >> 4));
+    if (string_to_decode[i + 2] != trailing_char) {
+      unsigned int pos2 = pos_of_char(string_to_decode[i + 2]);
+      bytes_to_decode[real_length++] =
+          (((pos1 & 0x0f) << 4) + ((pos2 & 0x3c) >> 2));
+      if (string_to_decode[i + 3] != trailing_char) {
+        unsigned int pos3 = pos_of_char(string_to_decode[i + 3]);
+        bytes_to_decode[real_length++] = (((pos2 & 0x03) << 6) + pos3);
+      }
+    }
+  }
+  return real_length;
+}
 using namespace std;
 typedef long long LL;
 int rid[15] = {0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2};
@@ -144,7 +179,7 @@ void dfs(int depth, LL status) {
   // dfs(depth + 1, status * 3 + 2);  // 2 = no mine and clicked
 }
 const int buf_size = 4412555 * 4;
-unsigned char buf[buf_size], buf2[buf_size];
+unsigned char buf[buf_size], buf2[buf_size], buf3[buf_size], buf4[buf_size];
 int bcnt = 0;
 void CalculateProbability() {
   for (auto it = visible_to_inner.begin(); it != visible_to_inner.end(); ++it) {
@@ -191,8 +226,19 @@ int main() {
   string raw = base64_encode(buf, bcnt, false);
   cout << raw << endl;
   freopen("tmp/compressed.txt", "w", stdout);
+  // buf is the raw data;
+  // buf2 is the compressed data;
+  // compressed is the base64-encoded form of buf2;
+  // buf3 is the base64_decoded form of compressed,it should be the same as buf2;
+  // buf4 is the decompressed data, it should be the same as buf;
   size_t real_size = compressData(buf, bcnt, buf2, buf_size);
   string compressed = base64_encode(buf2, real_size, false);
   cout << compressed << endl;
+  // check the correctness of the compression and base64 encoding
+  freopen("tmp/decompressed.txt", "w", stdout);
+  size_t real_size3 = base64_decode(compressed, buf3, buf_size, false);
+  for (int i = 0; i < real_size3; i++) assert(buf3[i] == buf2[i]);
+  size_t real_size4 = decompressData(buf3, real_size3, buf4, buf_size);
+  for (int i = 0; i < real_size4; i++) assert(buf4[i] == buf[i]);
   return 0;
 }

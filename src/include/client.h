@@ -26,7 +26,7 @@ bool already_have[14348907];
 int rid[15] = {0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2};
 int cid[15] = {0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 0, 1, 2, 3, 4};
 class HashTable {
-  static const int buf_size=44348907;
+  static const int buf_size = 44348907;
   struct Node {
     LL key;
     unsigned char value;
@@ -729,7 +729,8 @@ std::pair<int, int> MakeBestGuess() {
   using namespace Client;
   // just make a total random guess before a better algorithm is designed
   //   return TotalRandomGuess();
-  return SimpleGuess();
+  // return SimpleGuess();
+  return GreedyGuess();
   return std::make_pair(0, 0);
 }
 /**

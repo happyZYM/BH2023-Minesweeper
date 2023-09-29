@@ -4,11 +4,13 @@
 #include <iostream>
 #include <map>
 #include <memory>
+#include <set>
 #include <stdexcept>
 #include <string>
 #include <string_view>
 #include <vector>
-
+#include <unordered_map>
+#include <unordered_set>
 #include "miniz.h"
 
 /**
@@ -138,11 +140,17 @@ unordered_map<LL, vector<LL>> visible_to_inner;
 unordered_map<LL, LL> inner_to_visible;
 vector<LL> valid_visible_status;
 unordered_map<LL, double> visible_to_probability;
+unordered_set<LL> already_have;
+const LL line_base=243;
 void dfs(int depth, LL status) {
   // if (depth == 15) {
   for (int status = 0; status < 14348907; status++) {
     int inner_mp[3][5] = {0}, visible_map[3][5];
     LL status_tmp = status;
+	LL inverse_status=(status%line_base)*line_base*line_base+((status/line_base)%line_base)*line_base+(status/(line_base*line_base));
+	if (already_have.find(inverse_status)!=already_have.end()) continue;
+	assert(already_have.find(status)==already_have.end());
+	already_have.insert(status);
     for (int i = 0; i < 15; i++) {
       int row = rid[i], col = cid[i];
       inner_mp[row][col] = (status_tmp % 3);  // uncode the inner_status
@@ -229,8 +237,8 @@ int main() {
   // buf is the raw data;
   // buf2 is the compressed data;
   // compressed is the base64-encoded form of buf2;
-  // buf3 is the base64_decoded form of compressed,it should be the same as buf2;
-  // buf4 is the decompressed data, it should be the same as buf;
+  // buf3 is the base64_decoded form of compressed,it should be the same as
+  // buf2; buf4 is the decompressed data, it should be the same as buf;
   size_t real_size = compressData(buf, bcnt, buf2, buf_size);
   string compressed = base64_encode(buf2, real_size, false);
   cout << compressed << endl;

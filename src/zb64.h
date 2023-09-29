@@ -1118,33 +1118,6 @@ h001 void *mz_zip_extract_archive_file_to_heap_v2(const char *pZip_filename,
 #endif
 
 
-#include "miniz.h"
-/**************************************************************************
- *
- * Copyright 2013-2014 RAD Game Tools and Valve Software
- * Copyright 2010-2014 Rich Geldreich and Tenacious Software LLC
- * All Rights Reserved.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- **************************************************************************/
-
 typedef unsigned char mz_validate_uint16[sizeof(mz_uint16) == 2 ? 1 : -1];
 typedef unsigned char mz_validate_uint32[sizeof(mz_uint32) == 4 ? 1 : -1];
 typedef unsigned char mz_validate_uint64[sizeof(mz_uint64) == 8 ? 1 : -1];
@@ -8775,3 +8748,150 @@ t001 mz_zip_end(mz_zip_archive *pZip) {
 #endif
 
 #endif
+size_t compressData(const unsigned char *inputData, size_t inputSize,
+                    unsigned char *compressedData, size_t compressedSize) {
+  mz_ulong compressedSizeOut = compressedSize;
+  int compressResult = mz_compress2(compressedData, &compressedSizeOut,
+                                    inputData, inputSize, MZ_UBER_COMPRESSION);
+
+  if (compressResult != Z_OK) {
+    throw(std::runtime_error("Compression failed."));
+  }
+
+  return compressedSizeOut;
+}
+
+size_t decompressData(const unsigned char *compressedData,
+                      size_t compressedSize, unsigned char *decompressedData,
+                      size_t decompressedSize) {
+  mz_ulong decompressedSizeOut = decompressedSize;
+  int decompressResult = mz_uncompress(decompressedData, &decompressedSizeOut,
+                                       compressedData, compressedSize);
+
+  if (decompressResult != Z_OK) {
+    throw(std::runtime_error("Decompression failed."));
+  }
+
+  return decompressedSizeOut;
+}
+
+/**
+ * The following code is copied from
+ * https://github.com/ReneNyffenegger/cpp-base64 and modified by me.
+ */
+#include <stdexcept>
+#include <string>
+static const char *base64_chars[2] = {
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    "abcdefghijklmnopqrstuvwxyz"
+    "0123456789"
+    "+/",
+
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    "abcdefghijklmnopqrstuvwxyz"
+    "0123456789"
+    "-_"};
+
+static unsigned int pos_of_char(const unsigned char chr) {
+  //
+  // Return the position of chr within base64_encode()
+  //
+
+  if (chr >= 'A' && chr <= 'Z')
+    return chr - 'A';
+  else if (chr >= 'a' && chr <= 'z')
+    return chr - 'a' + ('Z' - 'A') + 1;
+  else if (chr >= '0' && chr <= '9')
+    return chr - '0' + ('Z' - 'A') + ('z' - 'a') + 2;
+  else if (chr == '+' || chr == '-')
+    return 62;  // Be liberal with input and accept both url ('-') and non-url
+                // ('+') base 64 characters (
+  else if (chr == '/' || chr == '_')
+    return 63;  // Ditto for '/' and '_'
+  else
+    //
+    // 2020-10-23: Throw std::exception rather than const char*
+    //(Pablo Martin-Gomez, https://github.com/Bouska)
+    //
+    throw std::runtime_error("Input is not valid base64-encoded data.");
+}
+
+std::string base64_encode(unsigned char const *bytes_to_encode, size_t in_len,
+                          bool url) {
+  size_t len_encoded = (in_len + 2) / 3 * 4;
+
+  unsigned char trailing_char = url ? '.' : '=';
+
+  //
+  // Choose set of base64 characters. They differ
+  // for the last two positions, depending on the url
+  // parameter.
+  // A bool (as is the parameter url) is guaranteed
+  // to evaluate to either 0 or 1 in C++ therefore,
+  // the correct character set is chosen by subscripting
+  // base64_chars with url.
+  //
+  const char *base64_chars_ = base64_chars[url];
+
+  std::string ret;
+  ret.reserve(len_encoded);
+
+  unsigned int pos = 0;
+
+  while (pos < in_len) {
+    ret.push_back(base64_chars_[(bytes_to_encode[pos + 0] & 0xfc) >> 2]);
+
+    if (pos + 1 < in_len) {
+      ret.push_back(base64_chars_[((bytes_to_encode[pos + 0] & 0x03) << 4) +
+                                  ((bytes_to_encode[pos + 1] & 0xf0) >> 4)]);
+
+      if (pos + 2 < in_len) {
+        ret.push_back(base64_chars_[((bytes_to_encode[pos + 1] & 0x0f) << 2) +
+                                    ((bytes_to_encode[pos + 2] & 0xc0) >> 6)]);
+        ret.push_back(base64_chars_[bytes_to_encode[pos + 2] & 0x3f]);
+      } else {
+        ret.push_back(base64_chars_[(bytes_to_encode[pos + 1] & 0x0f) << 2]);
+        ret.push_back(trailing_char);
+      }
+    } else {
+      ret.push_back(base64_chars_[(bytes_to_encode[pos + 0] & 0x03) << 4]);
+      ret.push_back(trailing_char);
+      ret.push_back(trailing_char);
+    }
+
+    pos += 3;
+  }
+
+  return ret;
+}
+/**
+ * @brief The definition of function base64_decode
+ * @param const std::string& string_to_decode The string to decode
+ * @param unsigned char const * bytes_to_decode The decoded string
+ * @param size_t max_len The max length of the decoded string
+ * @param bool url If true, then the url base64 alphabet is used
+ * @return size_t The real length of the decoded string
+ */
+size_t base64_decode(const std::string &string_to_decode,
+                     unsigned char *const bytes_to_decode, size_t max_len,
+                     bool url = false) {
+  size_t real_length = 0;
+  unsigned char trailing_char = url ? '.' : '=';
+  const char *base64_chars_ = base64_chars[url];
+  size_t len = string_to_decode.length();
+  for (size_t i = 0; i < len; i += 4) {
+    unsigned int pos0 = pos_of_char(string_to_decode[i + 0]);
+    unsigned int pos1 = pos_of_char(string_to_decode[i + 1]);
+    bytes_to_decode[real_length++] = ((pos0 << 2) + ((pos1 & 0x30) >> 4));
+    if (string_to_decode[i + 2] != trailing_char) {
+      unsigned int pos2 = pos_of_char(string_to_decode[i + 2]);
+      bytes_to_decode[real_length++] =
+          (((pos1 & 0x0f) << 4) + ((pos2 & 0x3c) >> 2));
+      if (string_to_decode[i + 3] != trailing_char) {
+        unsigned int pos3 = pos_of_char(string_to_decode[i + 3]);
+        bytes_to_decode[real_length++] = (((pos2 & 0x03) << 6) + pos3);
+      }
+    }
+  }
+  return real_length;
+}

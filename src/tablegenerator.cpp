@@ -24,9 +24,9 @@ unordered_map<LL, LL> inner_to_visible;
 vector<LL> valid_visible_status;
 unordered_map<LL, double> visible_to_probability;
 unordered_set<LL> already_have;
-const LL raw_line_base = 243;
-const LL vis_line_base = 100000;
 void FindStatus() {
+  const LL raw_line_base = 243;
+  const LL vis_line_base = 100000;
   for (int status = 0; status < 14348907; status++) {
     int inner_mp[3][5] = {0}, visible_map[3][5];
     LL status_tmp = status;

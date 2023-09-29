@@ -13,6 +13,8 @@
 #include <utility>
 #include <vector>
 
+#include "dataload.h"
+
 extern int rows;     // The count of rows of the game map
 extern int columns;  // The count of columns of the game map
 
@@ -38,6 +40,7 @@ void Execute(int row, int column);
  * map and the first step taken by the server (see README).
  */
 void InitGame() {
+  LoadData();
   int first_row, first_column;
   std::cin >> first_row >> first_column;
   Execute(first_row, first_column);
@@ -492,6 +495,137 @@ std::pair<int, int> SimpleGuess() {
         }
       }
   return best_guess;
+}
+double EstimateProb(std::pair<int, int> pos, double default_p = 0.06) {
+  if (pos.first == 0 || pos.first == rows - 1 || pos.second == 0 ||
+      pos.second == columns - 1)
+    return default_p;
+  std::vector<double> ps;
+  double res = 0;
+  typedef long long LL;
+  const LL raw_line_base = 243;
+  const LL vis_line_base = 100000;
+  int rid[15] = {0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2};
+  int cid[15] = {0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 0, 1, 2, 3, 4};
+  if (pos.second + 3 <= columns - 1) {
+    LL visible_status = 0;
+    for (int i = 0; i < 15; i++) {
+      int x = pos.first + rid[i] - 1, y = pos.second + cid[i] - 1;
+      if (map_status[x][y] != 2)
+        visible_status = (visible_status * 10) + 9;
+      else if (map_status[x][y] == 2)
+        visible_status = (visible_status * 10) + game_map[x][y] - '0';
+    }
+    LL invers_vis_status =
+        (visible_status % vis_line_base) * vis_line_base * vis_line_base +
+        ((visible_status / vis_line_base) % vis_line_base) * vis_line_base +
+        visible_status / (vis_line_base * vis_line_base);
+    if (DataLoad::visible_to_probability.find(visible_status) !=
+        DataLoad::visible_to_probability.end())
+      ps.push_back(DataLoad::visible_to_probability[visible_status] / 255.0);
+    if (DataLoad::visible_to_probability.find(invers_vis_status) !=
+        DataLoad::visible_to_probability.end())
+      ps.push_back(DataLoad::visible_to_probability[invers_vis_status] / 255.0);
+  }
+  if (pos.second - 3 >= 0) {
+    LL visible_status = 0;
+    for (int i = 0; i < 15; i++) {
+      int x = pos.first + rid[i] - 1, y = pos.second - (cid[i] - 1);
+      if (map_status[x][y] != 2)
+        visible_status = (visible_status * 10) + 9;
+      else if (map_status[x][y] == 2)
+        visible_status = (visible_status * 10) + game_map[x][y] - '0';
+    }
+    LL invers_vis_status =
+        (visible_status % vis_line_base) * vis_line_base * vis_line_base +
+        ((visible_status / vis_line_base) % vis_line_base) * vis_line_base +
+        visible_status / (vis_line_base * vis_line_base);
+    if (DataLoad::visible_to_probability.find(visible_status) !=
+        DataLoad::visible_to_probability.end())
+      ps.push_back(DataLoad::visible_to_probability[visible_status] / 255.0);
+    if (DataLoad::visible_to_probability.find(invers_vis_status) !=
+        DataLoad::visible_to_probability.end())
+      ps.push_back(DataLoad::visible_to_probability[invers_vis_status] / 255.0);
+  }
+  if (pos.first + 3 <= rows - 1) {
+    LL visible_status = 0;
+    for (int i = 0; i < 15; i++) {
+      int x = pos.first + cid[i] - 1, y = pos.second + rid[i] - 1;
+      if (map_status[x][y] != 2)
+        visible_status = (visible_status * 10) + 9;
+      else if (map_status[x][y] == 2)
+        visible_status = (visible_status * 10) + game_map[x][y] - '0';
+    }
+    LL invers_vis_status =
+        (visible_status % vis_line_base) * vis_line_base * vis_line_base +
+        ((visible_status / vis_line_base) % vis_line_base) * vis_line_base +
+        visible_status / (vis_line_base * vis_line_base);
+    if (DataLoad::visible_to_probability.find(visible_status) !=
+        DataLoad::visible_to_probability.end())
+      ps.push_back(DataLoad::visible_to_probability[visible_status] / 255.0);
+    if (DataLoad::visible_to_probability.find(invers_vis_status) !=
+        DataLoad::visible_to_probability.end())
+      ps.push_back(DataLoad::visible_to_probability[invers_vis_status] / 255.0);
+  }
+  if (pos.first - 3 >= 0) {
+    LL visible_status = 0;
+    for (int i = 0; i < 15; i++) {
+      int x = pos.first - (cid[i] - 1), y = pos.second + rid[i] - 1;
+      if (map_status[x][y] != 2)
+        visible_status = (visible_status * 10) + 9;
+      else if (map_status[x][y] == 2)
+        visible_status = (visible_status * 10) + game_map[x][y] - '0';
+    }
+    LL invers_vis_status =
+        (visible_status % vis_line_base) * vis_line_base * vis_line_base +
+        ((visible_status / vis_line_base) % vis_line_base) * vis_line_base +
+        visible_status / (vis_line_base * vis_line_base);
+    if (DataLoad::visible_to_probability.find(visible_status) !=
+        DataLoad::visible_to_probability.end())
+      ps.push_back(DataLoad::visible_to_probability[visible_status] / 255.0);
+    if (DataLoad::visible_to_probability.find(invers_vis_status) !=
+        DataLoad::visible_to_probability.end())
+      ps.push_back(DataLoad::visible_to_probability[invers_vis_status] / 255.0);
+  }
+  for (int i = 0; i < ps.size(); i++) res += ps[i] * ps[i];
+  return sqrt(res / ps.size());
+}
+/**
+ * @brief The definition of function GreedyGuess()
+ *
+ * @details This function is designed to make a guess when there is no definite
+ */
+std::pair<int, int> GreedyGuess() {
+  double default_probability = 0.06;
+  int total_known = 0, total_known_with_mine = 0;
+  for (int i = 0; i < rows; i++)
+    for (int j = 0; j < columns; j++)
+      if (map_status[i][j] != 0) {
+        total_known++;
+        if (map_status[i][j] == -1) total_known_with_mine++;
+      }
+  if (total_known > 5)
+    default_probability = (double)(total_known_with_mine) / (total_known);
+  std::pair<int, int> res;
+  bool is_first = true;
+  double res_prob = 1;
+  for (int i = 0; i < rows; i++)
+    for (int j = 0; j < columns; j++)
+      if (map_status[i][j] == 0) {
+        if (is_first) {
+          is_first = false;
+          res = std::make_pair(i, j);
+          double res_prob = EstimateProb(res, default_probability);
+          continue;
+        }
+        double this_prob =
+            EstimateProb(std::make_pair(i, j), default_probability);
+        if (this_prob < res_prob) {
+          res = std::make_pair(i, j);
+          res_prob = this_prob;
+        }
+      }
+  return res;
 }
 /**
  * @brief The definition of function MakeBestGuess()

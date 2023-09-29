@@ -679,8 +679,8 @@ double EstimateProb(std::pair<int, int> pos, double default_p = 0.06) {
     if (DataLoad::visible_to_probability.have(invers_vis_status))
       ps.push_back(DataLoad::visible_to_probability[invers_vis_status] / 255.0);
   }
-  for (int i = 0; i < ps.size(); i++) res += ps[i] * ps[i];
-  return sqrt(res / ps.size());
+  for (int i = 0; i < ps.size(); i++) res += ps[i];
+  return res / ps.size();
 }
 /**
  * @brief The definition of function GreedyGuess()

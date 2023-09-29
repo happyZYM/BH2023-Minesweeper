@@ -10,11 +10,10 @@
 #include <queue>
 #include <random>
 #include <set>
-#include <utility>
-#include <vector>
-
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
+#include <vector>
 
 #include "data.h"
 #include "zb64.h"
@@ -27,42 +26,35 @@ bool already_have[14348907];
 int rid[15] = {0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2};
 int cid[15] = {0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 0, 1, 2, 3, 4};
 class HashTable {
+  static const int buf_size=44348907;
   struct Node {
     LL key;
     unsigned char value;
     Node *next;
-    Node(LL k, unsigned char v) : key(k), value(v), next(nullptr) {}
+    // Node(LL k, unsigned char v) : key(k), value(v), next(nullptr) {}
   };
-  Node *table[14348907];
+  Node *table[buf_size], mem[buf_size], *cur = mem;
 
  public:
   HashTable() {
-    for (int i = 0; i < 14348907; i++) table[i] = nullptr;
+    for (int i = 0; i < buf_size; i++) table[i] = nullptr;
   }
-  ~HashTable() {
-    for (int i = 0; i < 14348907; i++) {
-      Node *p = table[i];
-      while (p) {
-        Node *q = p->next;
-        delete p;
-        p = q;
-      }
-    }
-  }
+  ~HashTable() {}
   unsigned char &operator[](LL key) {
-    int index = key % 14348907;
+    int index = key % buf_size;
     Node *p = table[index];
     while (p) {
       if (p->key == key) return p->value;
       p = p->next;
     }
-    p = new Node(key, 0);
+    p = cur++;
+    p->key = key;
     p->next = table[index];
     table[index] = p;
     return p->value;
   }
   bool have(LL key) {
-    int index = key % 14348907;
+    int index = key % buf_size;
     Node *p = table[index];
     while (p) {
       if (p->key == key) return true;
@@ -684,7 +676,7 @@ double EstimateProb(std::pair<int, int> pos, double default_p = 0.06) {
         visible_status / (vis_line_base * vis_line_base);
     if (DataLoad::visible_to_probability.have(visible_status))
       ps.push_back(DataLoad::visible_to_probability[visible_status] / 255.0);
-    if (DataLoad::visible_to_probability.have(invers_vis_status) )
+    if (DataLoad::visible_to_probability.have(invers_vis_status))
       ps.push_back(DataLoad::visible_to_probability[invers_vis_status] / 255.0);
   }
   for (int i = 0; i < ps.size(); i++) res += ps[i] * ps[i];

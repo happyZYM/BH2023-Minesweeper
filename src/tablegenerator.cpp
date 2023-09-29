@@ -4,85 +4,13 @@
 #include <iostream>
 #include <map>
 #include <memory>
-#include <vector>
-#include "miniz.h"
-//====
-//
-//  base64 encoding and decoding with C++.
-//  Version: 2.rc.09 (release candidate)
-//
-
-#ifndef BASE64_H_C0CE2A47_D10E_42C9_A27C_C883944E704A
-#define BASE64_H_C0CE2A47_D10E_42C9_A27C_C883944E704A
-
-#include <string>
-
-#if __cplusplus >= 201703L
-#include <string_view>
-#endif  // __cplusplus >= 201703L
-
-std::string base64_encode(std::string const &s, bool url = false);
-std::string base64_encode_pem(std::string const &s);
-std::string base64_encode_mime(std::string const &s);
-
-std::string base64_decode(std::string const &s, bool remove_linebreaks = false);
-std::string base64_encode(unsigned char const *, size_t len, bool url = false);
-
-#if __cplusplus >= 201703L
-//
-// Interface with std::string_view rather than const std::string&
-// Requires C++17
-// Provided by Yannic Bonenberger (https://github.com/Yannic)
-//
-std::string base64_encode(std::string_view s, bool url = false);
-std::string base64_encode_pem(std::string_view s);
-std::string base64_encode_mime(std::string_view s);
-
-std::string base64_decode(std::string_view s, bool remove_linebreaks = false);
-#endif  // __cplusplus >= 201703L
-
-#endif /* BASE64_H_C0CE2A47_D10E_42C9_A27C_C883944E704A */
-/*
-   base64.cpp and base64.h
-
-   base64 encoding and decoding with C++.
-   More information at
-     https://renenyffenegger.ch/notes/development/Base64/Encoding-and-decoding-base-64-with-cpp
-
-   Version: 2.rc.09 (release candidate)
-
-   Copyright (C) 2004-2017, 2020-2022 René Nyffenegger
-
-   This source code is provided 'as-is', without any express or implied
-   warranty. In no event will the author be held liable for any damages
-   arising from the use of this software.
-
-   Permission is granted to anyone to use this software for any purpose,
-   including commercial applications, and to alter it and redistribute it
-   freely, subject to the following restrictions:
-
-   1. The origin of this source code must not be misrepresented; you must not
-      claim that you wrote the original source code. If you use this source code
-      in a product, an acknowledgment in the product documentation would be
-      appreciated but is not required.
-
-   2. Altered source versions must be plainly marked as such, and must not be
-      misrepresented as being the original source code.
-
-   3. This notice may not be removed or altered from any source distribution.
-
-   René Nyffenegger rene.nyffenegger@adp-gmbh.ch
-
-*/
-
-#include <algorithm>
 #include <stdexcept>
+#include <string>
+#include <string_view>
+#include <vector>
 
-//
-// Depending on the url parameter in base64_chars, one of
-// two sets of base64 characters needs to be chosen.
-// They differ in their last two characters.
-//
+#include "miniz.h"
+
 static const char *base64_chars[2] = {
     "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     "abcdefghijklmnopqrstuvwxyz"
@@ -116,45 +44,6 @@ static unsigned int pos_of_char(const unsigned char chr) {
     //(Pablo Martin-Gomez, https://github.com/Bouska)
     //
     throw std::runtime_error("Input is not valid base64-encoded data.");
-}
-
-static std::string insert_linebreaks(std::string str, size_t distance) {
-  //
-  // Provided by https://github.com/JomaCorpFX, adapted by me.
-  //
-  if (!str.length()) {
-    return "";
-  }
-
-  size_t pos = distance;
-
-  while (pos < str.size()) {
-    str.insert(pos, "\n");
-    pos += distance + 1;
-  }
-
-  return str;
-}
-
-template <typename String, unsigned int line_length>
-static std::string encode_with_line_breaks(String s) {
-  return insert_linebreaks(base64_encode(s, false), line_length);
-}
-
-template <typename String>
-static std::string encode_pem(String s) {
-  return encode_with_line_breaks<String, 64>(s);
-}
-
-template <typename String>
-static std::string encode_mime(String s) {
-  return encode_with_line_breaks<String, 76>(s);
-}
-
-template <typename String>
-static std::string encode(String s, bool url) {
-  return base64_encode(reinterpret_cast<const unsigned char *>(s.data()),
-                       s.length(), url);
 }
 
 std::string base64_encode(unsigned char const *bytes_to_encode, size_t in_len,
@@ -205,127 +94,6 @@ std::string base64_encode(unsigned char const *bytes_to_encode, size_t in_len,
 
   return ret;
 }
-
-template <typename String>
-static std::string decode(String const &encoded_string,
-                          bool remove_linebreaks) {
-  //
-  // decode(…) is templated so that it can be used with String = const
-  // std::string& or std::string_view (requires at least C++17)
-  //
-
-  if (encoded_string.empty()) return std::string();
-
-  if (remove_linebreaks) {
-    std::string copy(encoded_string);
-
-    copy.erase(std::remove(copy.begin(), copy.end(), '\n'), copy.end());
-
-    return base64_decode(copy, false);
-  }
-
-  size_t length_of_string = encoded_string.length();
-  size_t pos = 0;
-
-  //
-  // The approximate length (bytes) of the decoded string might be one or
-  // two bytes smaller, depending on the amount of trailing equal signs
-  // in the encoded string. This approximation is needed to reserve
-  // enough space in the string to be returned.
-  //
-  size_t approx_length_of_decoded_string = length_of_string / 4 * 3;
-  std::string ret;
-  ret.reserve(approx_length_of_decoded_string);
-
-  while (pos < length_of_string) {
-    //
-    // Iterate over encoded input string in chunks. The size of all
-    // chunks except the last one is 4 bytes.
-    //
-    // The last chunk might be padded with equal signs or dots
-    // in order to make it 4 bytes in size as well, but this
-    // is not required as per RFC 2045.
-    //
-    // All chunks except the last one produce three output bytes.
-    //
-    // The last chunk produces at least one and up to three bytes.
-    //
-
-    size_t pos_of_char_1 = pos_of_char(encoded_string.at(pos + 1));
-
-    //
-    // Emit the first output byte that is produced in each chunk:
-    //
-    ret.push_back(static_cast<std::string::value_type>(
-        ((pos_of_char(encoded_string.at(pos + 0))) << 2) +
-        ((pos_of_char_1 & 0x30) >> 4)));
-
-    if ((pos + 2 <
-         length_of_string) &&  // Check for data that is not padded with equal
-                               // signs (which is allowed by RFC 2045)
-        encoded_string.at(pos + 2) != '=' &&
-        encoded_string.at(pos + 2) !=
-            '.'  // accept URL-safe base 64 strings, too, so check for '.' also.
-    ) {
-      //
-      // Emit a chunk's second byte (which might not be produced in the last
-      // chunk).
-      //
-      unsigned int pos_of_char_2 = pos_of_char(encoded_string.at(pos + 2));
-      ret.push_back(static_cast<std::string::value_type>(
-          ((pos_of_char_1 & 0x0f) << 4) + ((pos_of_char_2 & 0x3c) >> 2)));
-
-      if ((pos + 3 < length_of_string) && encoded_string.at(pos + 3) != '=' &&
-          encoded_string.at(pos + 3) != '.') {
-        //
-        // Emit a chunk's third byte (which might not be produced in the last
-        // chunk).
-        //
-        ret.push_back(static_cast<std::string::value_type>(
-            ((pos_of_char_2 & 0x03) << 6) +
-            pos_of_char(encoded_string.at(pos + 3))));
-      }
-    }
-
-    pos += 4;
-  }
-
-  return ret;
-}
-
-std::string base64_decode(std::string const &s, bool remove_linebreaks) {
-  return decode(s, remove_linebreaks);
-}
-
-std::string base64_encode(std::string const &s, bool url) {
-  return encode(s, url);
-}
-
-std::string base64_encode_pem(std::string const &s) { return encode_pem(s); }
-
-std::string base64_encode_mime(std::string const &s) { return encode_mime(s); }
-
-#if __cplusplus >= 201703L
-//
-// Interface with std::string_view rather than const std::string&
-// Requires C++17
-// Provided by Yannic Bonenberger (https://github.com/Yannic)
-//
-
-std::string base64_encode(std::string_view s, bool url) {
-  return encode(s, url);
-}
-
-std::string base64_encode_pem(std::string_view s) { return encode_pem(s); }
-
-std::string base64_encode_mime(std::string_view s) { return encode_mime(s); }
-
-std::string base64_decode(std::string_view s, bool remove_linebreaks) {
-  return decode(s, remove_linebreaks);
-}
-
-#endif  // __cplusplus >= 201703L
-//====
 using namespace std;
 typedef long long LL;
 int rid[15] = {0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2};
@@ -375,8 +143,8 @@ void dfs(int depth, LL status) {
   // dfs(depth + 1, status * 3 + 1);  // 1 = no mine and unclicked
   // dfs(depth + 1, status * 3 + 2);  // 2 = no mine and clicked
 }
-const int buf_size=4412555 * 4;
-unsigned char buf[buf_size],buf2[buf_size];
+const int buf_size = 4412555 * 4;
+unsigned char buf[buf_size], buf2[buf_size];
 int bcnt = 0;
 void CalculateProbability() {
   for (auto it = visible_to_inner.begin(); it != visible_to_inner.end(); ++it) {
@@ -389,28 +157,31 @@ void CalculateProbability() {
     buf[bcnt++] = int((double(mine_cnt) / it->second.size()) * 255);
   }
 }
-size_t compressData(const unsigned char* inputData, size_t inputSize, unsigned char* compressedData, size_t compressedSize) {
-    mz_ulong compressedSizeOut = compressedSize;
-    int compressResult = mz_compress2(compressedData, &compressedSizeOut,
-                                      inputData, inputSize, MZ_BEST_COMPRESSION);
+size_t compressData(const unsigned char *inputData, size_t inputSize,
+                    unsigned char *compressedData, size_t compressedSize) {
+  mz_ulong compressedSizeOut = compressedSize;
+  int compressResult = mz_compress2(compressedData, &compressedSizeOut,
+                                    inputData, inputSize, MZ_BEST_COMPRESSION);
 
-    if (compressResult != Z_OK) {
-        throw(std::runtime_error("Compression failed."));
-    }
+  if (compressResult != Z_OK) {
+    throw(std::runtime_error("Compression failed."));
+  }
 
-    return compressedSizeOut;
+  return compressedSizeOut;
 }
 
-size_t decompressData(const unsigned char* compressedData, size_t compressedSize, unsigned char* decompressedData, size_t decompressedSize) {
-    mz_ulong decompressedSizeOut = decompressedSize;
-    int decompressResult = mz_uncompress(decompressedData, &decompressedSizeOut,
-                                         compressedData, compressedSize);
+size_t decompressData(const unsigned char *compressedData,
+                      size_t compressedSize, unsigned char *decompressedData,
+                      size_t decompressedSize) {
+  mz_ulong decompressedSizeOut = decompressedSize;
+  int decompressResult = mz_uncompress(decompressedData, &decompressedSizeOut,
+                                       compressedData, compressedSize);
 
-    if (decompressResult != Z_OK) {
-        throw(std::runtime_error("Decompression failed."));
-    }
+  if (decompressResult != Z_OK) {
+    throw(std::runtime_error("Decompression failed."));
+  }
 
-    return decompressedSizeOut;
+  return decompressedSizeOut;
 }
 int main() {
   dfs(0, 0);
@@ -420,8 +191,8 @@ int main() {
   string raw = base64_encode(buf, bcnt, false);
   cout << raw << endl;
   freopen("tmp/compressed.txt", "w", stdout);
-  size_t real_size=compressData(buf, bcnt, buf2, buf_size);
-  string compressed=base64_encode(buf2,real_size,false);
-  cout<<compressed<<endl;
+  size_t real_size = compressData(buf, bcnt, buf2, buf_size);
+  string compressed = base64_encode(buf2, real_size, false);
+  cout << compressed << endl;
   return 0;
 }

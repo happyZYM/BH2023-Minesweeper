@@ -128,7 +128,7 @@ def ATest():
 				win_round+=1
 			print("win rate: "+str(win_round/total_round),win_round,total_round)
 
-	input("Press Enter to continue...")
+	#input("Press Enter to continue...")
 
 	for i in range(10000):
 		# randomly generate n,m in [2,30]
@@ -195,7 +195,7 @@ def GenerateSource(value1,value2):
 	# copy src/advanced.cpp to tmp/advanced.cpp
 	os.system("cp src/advanced.cpp tmp/advanced.cpp")
 	# compile the source tmp/advanced.cpp to tmp/client
-	os.system("g++ -std=c++11 -g -O2 -Wall -Wextra -Werror tmp/advanced.cpp -o tmp/client")
+	os.system("g++ -std=c++11 -g -O2 -Wall -Wextra tmp/advanced.cpp -o tmp/client")
 
 for value1 in value1_list:
 	for value2 in value2_list:

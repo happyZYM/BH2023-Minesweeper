@@ -201,5 +201,12 @@ for value1 in value1_list:
 	for value2 in value2_list:
 		GenerateSource(value1,value2)
 		print("value1="+str(value1)+", value2="+str(value2))
-		print("win rate: "+str(ATest()))
+		ratio=ATest()
+		print("win rate: "+str(ratio))
 		print("")
+		# write to tmp/log.txt
+		fn=open("tmp/log.txt","a")
+		fn.write("value1="+str(value1)+", value2="+str(value2)+"\n")
+		fn.write("win rate: "+str(ratio)+"\n")
+		fn.write("\n")
+		fn.close()

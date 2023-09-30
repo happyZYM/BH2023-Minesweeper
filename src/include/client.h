@@ -437,9 +437,10 @@ inline double GetProb(double default_p, const std::vector<double> &ps) {
  */
 std::pair<int, int> SimpleGuess() {
   using namespace Client;
+  const double m_pow=1;
   // std::cout << "SimpleGuess" << std::endl;
   std::vector<double> probability[max_size][max_size];
-  double default_probability = 0.06;
+  double default_probability = pow(0.06,m_pow);
   int total_known = 0, total_known_with_mine = 0;
   for (int i = 0; i < rows; i++)
     for (int j = 0; j < columns; j++)
@@ -448,7 +449,7 @@ std::pair<int, int> SimpleGuess() {
         if (map_status[i][j] == -1) total_known_with_mine++;
       }
   if (total_known > 5)
-    default_probability = (double)(total_known_with_mine) / (total_known);
+    default_probability = pow((double)(total_known_with_mine) / (total_known),m_pow);
   // if((double)(total_known)/(rows*columns)<0.15) return TotalRandomGuess();
   for (int i = 0; i < rows; i++)
     for (int j = 0; j < columns; j++)
@@ -473,8 +474,8 @@ std::pair<int, int> SimpleGuess() {
           int x = i + dx[k], y = j + dy[k];
           if (x >= 0 && x < rows && y >= 0 && y < columns) {
             if (map_status[x][y] == 0)
-              probability[x][y].push_back((double)(nearby_mines) /
-                                          (nearby_unkown));
+              probability[x][y].push_back(pow((double)(nearby_mines) /
+                                          (nearby_unkown),m_pow));
           }
         }
       }

@@ -679,6 +679,12 @@ double EstimateProb(std::pair<int, int> pos, double default_p = 0.06) {
     if (DataLoad::visible_to_probability.have(invers_vis_status))
       ps.push_back(DataLoad::visible_to_probability[invers_vis_status] / 255.0);
   }
+  // assert(ps.size() > 0);
+  if(ps.size()==0)
+  {
+    ;
+    return default_p;
+  }
   for (int i = 0; i < ps.size(); i++) res += ps[i];
   return res / ps.size();
 }

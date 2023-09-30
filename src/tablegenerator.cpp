@@ -71,15 +71,61 @@ const int buf_size = 4412555 * 4;
 unsigned char buf[buf_size], buf2[buf_size], buf3[buf_size], buf4[buf_size];
 int bcnt = 0;
 void CalculateProbability() {
-  for (auto it = visible_to_inner.begin(); it != visible_to_inner.end(); ++it) {
-    assert(it->second.size() > 0);
-    int mine_cnt = 0;
-    for (int i = 0; i < it->second.size(); i++) {
-      mine_cnt += ((it->second[i] / 729) % 3 == 0 ? 1 : 0);
+  const LL raw_line_base = 243;
+  const LL vis_line_base = 100000;
+  already_have.clear();
+  for (int status = 0; status < 14348907; status++) {
+    int inner_mp[3][5] = {0}, visible_map[3][5];
+    LL status_tmp = status;
+    LL inverse_status =
+        (status % raw_line_base) * raw_line_base * raw_line_base +
+        ((status / raw_line_base) % raw_line_base) * raw_line_base +
+        (status / (raw_line_base * raw_line_base));
+    if (already_have.find(inverse_status) != already_have.end()) continue;
+    // assert(already_have.find(status) == already_have.end());
+    already_have.insert(status);
+    for (int i = 0; i < 15; i++) {
+      int row = rid[i], col = cid[i];
+      inner_mp[row][col] = (status_tmp % 3);  // uncode the inner_status
+      status_tmp /= 3;
     }
-    visible_to_probability[it->first] = double(mine_cnt) / it->second.size();
-    buf[bcnt++] = int((double(mine_cnt) / it->second.size()) * 255);
+    for (int row = 0; row < 3; row++)
+      for (int col = 0; col < 5; col++) {
+        if (inner_mp[row][col] == 0 || inner_mp[row][col] == 1) {
+          visible_map[row][col] = 9;  // 9 means unshown to player
+        } else {
+          int mcnt = 0;
+          const int dx[8] = {-1, -1, -1, 0, 0, 1, 1, 1},
+                    dy[8] = {-1, 0, 1, -1, 1, -1, 0, 1};
+          for (int i = 0; i < 8; i++) {
+            int nr = row + dx[i], nc = col + dy[i];
+            if (nr < 0 || nr >= 3 || nc < 0 || nc >= 5) continue;
+            mcnt += (inner_mp[nr][nc] == 0 ? 1 : 0);
+          }
+          visible_map[row][col] = mcnt;
+        }
+      }
+    LL visible_status = 0;
+    for (int i = 0; i < 15; i++) {
+      int row = rid[i], col = cid[i];
+      visible_status = visible_status * 10 + visible_map[row][col];
+    }
+    int mine_cnt = 0;
+    for(int i=0;i<visible_to_inner[visible_status].size();i++){
+      mine_cnt += ((visible_to_inner[visible_status][i] / 729) % 3 == 0 ? 1 : 0);
+    }
+    visible_to_probability[visible_status] = double(mine_cnt) / visible_to_inner[visible_status].size();
+    buf[bcnt++] = int((double(mine_cnt) / visible_to_inner[visible_status].size()) * 255);
   }
+  // for (auto it = visible_to_inner.begin(); it != visible_to_inner.end(); ++it) {
+  //   assert(it->second.size() > 0);
+  //   int mine_cnt = 0;
+  //   for (int i = 0; i < it->second.size(); i++) {
+  //     mine_cnt += ((it->second[i] / 729) % 3 == 0 ? 1 : 0);
+  //   }
+  //   visible_to_probability[it->first] = double(mine_cnt) / it->second.size();
+  //   buf[bcnt++] = int((double(mine_cnt) / it->second.size()) * 255);
+  // }
 }
 int main() {
   FindStatus();
@@ -98,7 +144,7 @@ int main() {
   string compressed = base64_encode(buf2, real_size, false);
   cout << compressed << endl;
   // check the correctness of the compression and base64 encoding
-  freopen("tmp/decompressed.txt", "w", stdout);
+  //   freopen("tmp/decompressed.txt", "w", stdout);
   size_t real_size3 = base64_decode(compressed, buf3, buf_size, false);
   for (int i = 0; i < real_size3; i++) assert(buf3[i] == buf2[i]);
   size_t real_size4 = decompressData(buf3, real_size3, buf4, buf_size);

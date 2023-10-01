@@ -248,7 +248,7 @@ std::vector<std::vector<double> > GaussianJordanElimination(
   std::vector<double> equa_template;
   equa_template.resize(m);
   // assert(n + 1 == m);
-  for (int tot = 0; tot < 5; tot++) {
+  for (int tot = 0; tot < 10; tot++) {
     n = equations.size();
     for (int i = 0; i < n; i++) {
       int pivot = i;
@@ -396,7 +396,7 @@ void PreProcessData() {
   // 3. interpret the result of Gaussian-Jordan Elimination,store the result in
   // map_status and push the newly found block that definitely has no mine
   // into no_mine_block_to_be_clicked
-  for (int i = 0; i < 8; i++) {
+  for (int i = 0; i < 15; i++) {
     std::vector<std::vector<double> > equations = GenerateEquations();
     equations = GaussianJordanElimination(equations);
     InterpretResult(equations);
@@ -438,8 +438,8 @@ inline double GetProb(double default_p, const std::vector<double> &ps) {
  */
 std::pair<int, int> SimpleGuess() {
   using namespace Client;
-  const double m_pow_edge = 1;
-  const double m_pow_coner = 1;
+  const double m_pow_edge = 0.5;
+  const double m_pow_coner = 2.5;
   // std::cout << "SimpleGuess" << std::endl;
   std::vector<double> probability[max_size][max_size];
   double default_probability = pow(0.06, (m_pow_edge + m_pow_coner) / 2);

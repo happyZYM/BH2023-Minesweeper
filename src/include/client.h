@@ -425,7 +425,8 @@ inline double GetProb(double default_p, const std::vector<double> &ps) {
   if (ps.empty()) return default_p;
   double res = 0;
   const double v =
-      2;  // use root mean square to estimate the probability in a cautious way
+      1.75;  // use root mean square to estimate the probability in a cautious
+             // way,and this specific value is chosen by testing
   for (int i = 0; i < ps.size(); i++) res += pow(ps[i], v);
   return pow(res / ps.size(), 1.0 / v);
 }
@@ -437,10 +438,11 @@ inline double GetProb(double default_p, const std::vector<double> &ps) {
  */
 std::pair<int, int> SimpleGuess() {
   using namespace Client;
-  const double m_pow=1;
+  const double m_pow_edge = 1;
+  const double m_pow_coner = 1;
   // std::cout << "SimpleGuess" << std::endl;
   std::vector<double> probability[max_size][max_size];
-  double default_probability = pow(0.06,m_pow);
+  double default_probability = pow(0.06, (m_pow_edge + m_pow_coner) / 2);
   int total_known = 0, total_known_with_mine = 0;
   for (int i = 0; i < rows; i++)
     for (int j = 0; j < columns; j++)
@@ -449,7 +451,8 @@ std::pair<int, int> SimpleGuess() {
         if (map_status[i][j] == -1) total_known_with_mine++;
       }
   if (total_known > 5)
-    default_probability = pow((double)(total_known_with_mine) / (total_known),m_pow);
+    default_probability = pow((double)(total_known_with_mine) / (total_known),
+                              (m_pow_coner + m_pow_edge) / 2);
   // if((double)(total_known)/(rows*columns)<0.15) return TotalRandomGuess();
   for (int i = 0; i < rows; i++)
     for (int j = 0; j < columns; j++)
@@ -474,8 +477,14 @@ std::pair<int, int> SimpleGuess() {
           int x = i + dx[k], y = j + dy[k];
           if (x >= 0 && x < rows && y >= 0 && y < columns) {
             if (map_status[x][y] == 0)
-              probability[x][y].push_back(pow((double)(nearby_mines) /
-                                          (nearby_unkown),m_pow));
+              if (abs(dx[k]) + abs(dy[k]) == 2)
+                probability[x][y].push_back(
+                    pow((double)(nearby_mines) / (nearby_unkown), m_pow_coner));
+              else
+                probability[x][y].push_back(
+                    pow((double)(nearby_mines) / (nearby_unkown), m_pow_edge));
+            assert(abs(dx[k]) + abs(dy[k]) == 1 ||
+                   abs(dx[k]) + abs(dy[k]) == 2);
           }
         }
       }

@@ -178,16 +178,16 @@ def ATest():
 	return win_round/total_round
 
 value1_list=[0.25,0.5,0.75,1,1.25,1.5,1.75,2,2.25,2.5,3]
-value2_list=[0.6,0.7,0.8,0.9,1,1.1,1.2,1.3,1.4,1.5,1.7,2,2.5,3]
+value2_list=[0.25,0.5,0.75,1,1.25,1.5,1.75,2,2.25,2.5,3]
 def GenerateSource(value1,value2):
 	# read src/include/client.h
 	fn=open("src/include/client.h","r")
 	lines=fn.readlines()
 	fn.close()
-	# change the 428 th line into "value1; //auto set"
-	lines[427]="\t"+str(value1)+"; //auto set\n"
-	# change the 440 th line into "const double m_pow=value2; //auto set"
-	lines[439]="\tconst double m_pow="+str(value2)+"; //auto set\n"
+	# change the 441 th line to "const double m_pow_edge = "+str(value1)+";"
+	lines[440]="const double m_pow_edge = "+str(value1)+";\n"
+	# change the 442 th line to "const double m_pow_coner = "+str(value2)+";"
+	lines[441]="const double m_pow_coner = "+str(value2)+";\n"
 	# write the source to "tmp/client.h"
 	fn=open("tmp/client.h","w")
 	fn.writelines(lines)

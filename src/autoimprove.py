@@ -131,7 +131,7 @@ def ATest():
 
 	#input("Press Enter to continue...")
 
-	for i in range(10000):
+	for loop_cnt in range(10000):
 		# randomly generate n,m in [2,30]
 		n=random.randint(20,30)
 		m=random.randint(20,30)

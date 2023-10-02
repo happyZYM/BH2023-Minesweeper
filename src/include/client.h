@@ -57,6 +57,7 @@ void InitGame() {
 namespace Client {
 const unsigned int RndSeed = std::random_device{}();
 std::mt19937 RawRnd(RndSeed);  // a basic random generator
+const double RawRnd_max = 4294967295.0;
 const int max_size = 35;
 char game_map[max_size][max_size];  // store the raw game map in format of char
 std::queue<std::pair<int, int> >
@@ -489,6 +490,9 @@ std::pair<int, int> SimpleGuess() {
         }
       }
   std::pair<int, int> best_guess = TotalRandomGuess();
+  bool allow_a_guess = true;
+  const double guess_begin_consideration_ratio = 0.95;
+  const double guess_tightness_parameter = 10;
   for (int i = 0; i < rows; i++)
     for (int j = 0; j < columns; j++)
       if (map_status[i][j] == 0) {
@@ -499,6 +503,15 @@ std::pair<int, int> SimpleGuess() {
         if (this_prob < current_prob) {
           best_guess.first = i;
           best_guess.second = j;
+        } else if ((double)(total_known) / (rows * columns) >
+                       guess_begin_consideration_ratio &&
+                   allow_a_guess) {
+          if (exp(-(this_prob - current_prob) * guess_tightness_parameter) <
+              RawRnd() / RawRnd_max) {
+            best_guess.first = i;
+            best_guess.second = j;
+            allow_a_guess = false;
+          }
         }
       }
   return best_guess;

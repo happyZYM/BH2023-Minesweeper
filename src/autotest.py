@@ -122,8 +122,9 @@ for i in range(0,10):
 		fn.close()
 		print(lines)
 		total_round+=1
-		if lines[0]=='YOU WIN!\n':
-			win_round+=1
+		if len(lines)>0:
+			if lines[0]=='YOU WIN!\n':
+				win_round+=1
 		print("win rate: "+str(win_round/total_round),win_round,total_round)
 
 input("Press Enter to continue...")
@@ -168,6 +169,7 @@ while True:
 	# check the output
 	print(lines)
 	total_round+=1
-	if lines[0]=='YOU WIN!\n':
-		win_round+=1
+	if len(lines)>0:
+		if lines[0]=='YOU WIN!\n':
+			win_round+=1
 	print("win rate: "+str(win_round/total_round),win_round,total_round)

@@ -506,7 +506,7 @@ std::pair<int, int> SimpleGuess() {
         } else if ((double)(total_known) / (rows * columns) >
                        guess_begin_consideration_ratio &&
                    allow_a_guess) {
-          if (exp(-(this_prob - current_prob) * guess_tightness_parameter) <
+          if (exp(-(this_prob - current_prob) * guess_tightness_parameter) >
               RawRnd() / RawRnd_max) {
             best_guess.first = i;
             best_guess.second = j;

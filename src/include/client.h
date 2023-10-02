@@ -510,7 +510,7 @@ std::pair<int, int> SimpleGuess() {
               RawRnd() / RawRnd_max) {
             best_guess.first = i;
             best_guess.second = j;
-            allow_a_guess = false;
+            // allow_a_guess = false;
           }
         }
       }

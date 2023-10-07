@@ -2,3 +2,5 @@ BasedOnStyle: Google
 DerivePointerAlignment: false
 PointerAlignment: Right
 ColumnLimit: 80
+AllowCommentMovement: true
+PenaltyBreakBeforeFirstCallParameter: 100

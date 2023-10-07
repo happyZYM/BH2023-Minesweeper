@@ -1,3 +1,36 @@
+/**
+ * @file client.h
+ *
+ * @brief The definition of the client
+ * @details This file contains the definition of the client. When the function
+ * ReadMap() is called, the client will read the game map from stdin and trying
+ * to calculate which blocks definitely has no mine and which blocks definitely
+ * has mine. Then the client will push the blocks that definitely has no mine
+ * into a queue no_mine_block_to_be_clicked. When the function Decide() is
+ * called, the client will pop a block from no_mine_block_to_be_clicked and
+ * execute it. If no_mine_block_to_be_clicked is empty, the client will make a
+ * guess.
+ *
+ * @codesytle This file is written in a sytle mainly based on Google C++ Style
+ * Guide. What's sepecial is the comment:
+ * 1. Multi-line comments are always before the code they comment on.
+ * Usually the code they comment on is a complex procedure,like the definition
+ * of a function,a class or a variable with complex operation. If a multi-line
+ * comment is in one line, it will start with "/*" instead of "/**",otherwise it
+ * will start with "/**" and in the format of Doxygen.
+ * 2. Single-line comments are always after the code they comment on.
+ * Usually they are in the same line with the code they comment on,but sometimes
+ * they may come in the next lines. single-line comments shouldn't exceed 3
+ * lines as they are intended to be short and easy to understand.
+ * 3. Temporary commented code will be marked with "//" in the front of each
+ * 4. Some comments have special meanings,like "//TODO", "//FIXME", "//XXX","//
+ * clang-format off" and "// clang-format on". They are not controlled by the
+ * previous rules.
+ *
+ * As I use Clang-format to format my code, so the code style may be a little
+ * bit strange when parameters or phrases are too long,thus I'm try to manually
+ * format the code.
+ */
 #ifndef CLIENT_H
 #define CLIENT_H
 
@@ -16,7 +49,7 @@
 extern int rows;     // The count of rows of the game map
 extern int columns;  // The count of columns of the game map
 
-// You can not use any other external variables except for rows and columns.
+/*You can not use any other external variables except for rows and columns.*/
 
 /**
  * @brief The definition of function Execute(int, int)
@@ -55,30 +88,30 @@ void InitGame() {
  *     01?
  */
 namespace Client {
-const unsigned int RndSeed = std::random_device{}();
-std::mt19937 RawRnd(RndSeed);  // a basic random generator
-const double RawRnd_max = 4294967295.0;
-const int max_size = 35;
-char game_map[max_size][max_size];  // store the raw game map in format of char
-std::queue<std::pair<int, int> >
-    no_mine_block_to_be_clicked;  // store the block that definitely has no mine
-                                  // and not yet clicked
-int map_status[max_size]
-              [max_size];  // store the status of each block(processed version),
-                           // 0 means unknown , -1 means has mine, 1 means no
-                           // mine and not yet clicked, and 2 means has been
-                           // clicked Note that if some block is found to be
-                           // definitely has no mine or has mine, it will be
-                           // marked as known even if it is not clicked. In
-                           // conclusion, if map_status[i][j] == 0, then
-                           // game_map[i][j] == '?'. If map_status[i][j] == -1,
-                           // then game_map[i][j] == '?', and it will never be
-                           // clicked. If map_status[i][j] == 1, then
-                           // game_map[i][j] == '?', and it will be clicked
-                           // later. If map_status[i][j] == 2, then
-                           // game_map[i][j] == '0'-'8', and it has been clicked
-                           // And when a block's status is updated from 0 to 1,
-                           // it will be pushed into no_mine_block_to_be_clicked
+const unsigned int kRndSeed = std::random_device{}();
+std::mt19937 RawRnd(kRndSeed);  // a basic random generator
+const double kRawRndMax = 4294967295.0;
+const int kMaxMapSize = 35;
+char game_map[kMaxMapSize][kMaxMapSize];
+// store the raw game map in format of char
+std::queue<std::pair<int, int> > no_mine_block_to_be_clicked;
+// store the block that definitely has no mine and not yet clicked
+/**
+ * @brief The definition of variable map_status
+ *
+ * @details map_status[kMaxMapSize][kMaxMapSize] stores the status of each
+ * block(processed version), 0 means unknown , -1 means has mine, 1 means no
+ * mine and not yet clicked, and 2 means has been clicked Note that if some
+ * block is found to be definitely has no mine or has mine, it will be marked as
+ * known even if it is not clicked. In conclusion, if map_status[i][j] == 0,
+ * then game_map[i][j] == '?'. If map_status[i][j] == -1, then game_map[i][j] ==
+ * '?', and it will never be clicked. If map_status[i][j]
+ * == 1, then game_map[i][j] == '?', and it will be clicked later. If
+ * map_status[i][j] == 2, then game_map[i][j] == '0'-'8', and it has been
+ * clicked And when a block's status is updated from 0 to 1, it will be pushed
+ * into no_mine_block_to_be_clicked
+ */
+int map_status[kMaxMapSize][kMaxMapSize];
 /**
  * @brief The definition of function ProcessSimpleCase()
  *
@@ -88,19 +121,19 @@ void ProcessSimpleCase() {
   for (int i = 0; i < rows; i++)
     for (int j = 0; j < columns; j++)
       if (map_status[i][j] == 2) {
-        int nearby_mines = game_map[i][j] - '0',
-            nearby_unkown =
-                0;  // nearby_mines is the number of mines in currently unknown
-                    // blocks that are adjacent to the block (i,j)
+        int nearby_mines = game_map[i][j] - '0', nearby_unkown = 0;
+        // nearby_mines is the number of mines in currently unknown blocks that
+        // are adjacent to the block (i,j)
         const int dx[8] = {-1, -1, -1, 0, 0, 1, 1, 1},
                   dy[8] = {-1, 0, 1, -1, 1, -1, 0, 1};
         for (int k = 0; k < 8; k++) {
           int x = i + dx[k], y = j + dy[k];
           if (x >= 0 && x < rows && y >= 0 && y < columns) {
-            if (map_status[x][y] == 0)
+            if (map_status[x][y] == 0) {
               nearby_unkown++;
-            else if (map_status[x][y] == -1)
+            } else if (map_status[x][y] == -1) {
               nearby_mines--;
+            }
           }
         }
         if (nearby_unkown != 0) {
@@ -124,9 +157,8 @@ void ProcessSimpleCase() {
         }
       }
 }
-std::map<std::pair<int, int>, int>
-    position_to_variaID;  // convert the (row,column) to variable ID in the
-                          // equations,0 based
+std::map<std::pair<int, int>, int> position_to_variaID;
+// convert the (row,column) to variable ID in the equations,0 based
 std::vector<std::pair<int, int> > variaID_to_position;
 /**
  * @brief The definition of function PrintEquations()
@@ -134,21 +166,23 @@ std::vector<std::pair<int, int> > variaID_to_position;
  * @details This function is designed to print the equations for debugging
  */
 void PrintEquations(std::vector<std::vector<double> > equations) {
-  // return;
   std::cout << "equations:" << std::endl;
   for (int i = 0; i < equations.size(); i++) {
     for (int j = 0; j < equations[i].size(); j++)
       std::cout << equations[i][j] << " ";
     std::cout << std::endl;
   }
-  // use variaID_to_position to print the position of each variable
+  /*use variaID_to_position to print the position of each variable*/
   std::cout << "variaID_to_position:" << std::endl;
+  // clang-format off
   for (int i = 0; i < variaID_to_position.size(); i++)
-    std::cout << "(" << variaID_to_position[i].first << ","
-              << variaID_to_position[i].second << ")"
-              << " ";
+    std::cout << "(" << variaID_to_position[i].first 
+              << ","
+              << variaID_to_position[i].second
+              << ") ";
+  // clang-format on
   std::cout << std::endl;
-  // print map_status
+  /*print map_status*/
   std::cout << "map_status:" << std::endl;
   for (int i = 0; i < rows; i++) {
     for (int j = 0; j < columns; j++) std::cout << map_status[i][j] << " ";
@@ -209,8 +243,9 @@ std::vector<std::vector<double> > GenerateEquations() {
             if (map_status[x][y] == -1) nearby_mines--;
           }
         }
-        equations[equations.size() - 1][position_to_variaID.size()] =
-            nearby_mines;
+        // clang-format off
+        equations[equations.size() - 1][position_to_variaID.size()] = nearby_mines;
+        // clang-format on
         for (int k = 0; k < 8; k++) {
           int nr = i + dx[k], nc = j + dy[k];
           if (nr < 0 || nr >= rows || nc < 0 || nc >= columns) continue;
@@ -220,7 +255,7 @@ std::vector<std::vector<double> > GenerateEquations() {
         }
       }
   // PrintEquations(equations);
-  // randome shuffle lines of equations using RawRnd
+  /*randome shuffle lines of equations using RawRnd*/
   std::random_shuffle(equations.begin(), equations.end(), RandIntLessThan);
   return equations;
 }
@@ -231,14 +266,15 @@ std::vector<std::vector<double> > GenerateEquations() {
  * &equations
  * @param vector<vector<double>> equations The equations to be solved
  */
-const double eps = 1e-6;
-const int error_status_of_nearint = -0x3f3f3f3f;
+const double kEps = 1e-6;
+const int kErrorStatusOfNearbyInt = -0x3f3f3f3f;
 inline int NearbyInt(double v) {
   int raw = v + 0.5;
-  if (abs(v - raw) < eps)
+  if (abs(v - raw) < kEps) {
     return raw;
-  else
-    return error_status_of_nearint;
+  } else {
+    return kErrorStatusOfNearbyInt;
+  }
 }
 std::vector<std::vector<double> > GaussianJordanElimination(
     std::vector<std::vector<double> > equations) {
@@ -257,7 +293,7 @@ std::vector<std::vector<double> > GaussianJordanElimination(
       for (int j = i + 1; j < n; j++)
         if (abs(equations[j][i]) > abs(equations[pivot][i])) pivot = j;
       std::swap(equations[i], equations[pivot]);
-      if (abs(equations[i][i]) < eps) continue;
+      if (abs(equations[i][i]) < kEps) continue;
       const double pivot_value = equations[i][i];
       for (int j = 0; j < m; j++) equations[i][j] /= pivot_value;
       for (int j = 0; j < n; j++)
@@ -266,13 +302,12 @@ std::vector<std::vector<double> > GaussianJordanElimination(
           for (int k = 0; k < m; k++) equations[j][k] -= tmp * equations[i][k];
         }
     }
-    // continue;
     for (int i = 0; i < equations.size(); i++) {
       bool error_occur = false;
       int total_num = 0;
       for (int j = 0; j < m - 1; j++) {
         int v = NearbyInt(equations[i][j]);
-        if (v == error_status_of_nearint || v < 0) {
+        if (v == kErrorStatusOfNearbyInt || v < 0) {
           error_occur = true;
           break;
         }
@@ -336,18 +371,21 @@ void InterpretResult(std::vector<std::vector<double> > equations) {
       if (NearbyInt(equations[i][j]) == 1) {
         number_of_1++;
         vid = j;
-      } else if (NearbyInt(equations[i][j]) != 0)
+      } else if (NearbyInt(equations[i][j]) != 0) {
         number_of_non1++;
+      }
     if (number_of_non1) continue;
     if (number_of_1 != 1) continue;
     int sol = NearbyInt(equations[i][m - 1]);
-    if (sol == error_status_of_nearint) continue;
+    if (sol == kErrorStatusOfNearbyInt) continue;
     if (sol != 0 && sol != 1) {
       std::cerr << "sol=" << sol << std::endl;
       std::cerr << "one=" << number_of_1
                 << " not one not zero=" << number_of_non1 << std::endl;
-      std::cerr << NearbyInt(equations[i][m - 1]) << ' ' << equations[i][m - 1]
-                << std::endl;
+      // clang-format off
+      std::cerr << NearbyInt(equations[i][m - 1]) << ' '
+                << equations[i][m - 1] << std::endl;
+      // clang-format on
       PrintEquations(equations);
     }
     assert(sol == 0 || sol == 1);
@@ -381,22 +419,23 @@ void InterpretResult(std::vector<std::vector<double> > equations) {
  * it will be marked as known even if it is not clicked.
  */
 void PreProcessData() {
-  using namespace Client;
-  // scan the game_map and mark clicked block in map_status
+  /*scan the game_map and mark clicked block in map_status*/
   for (int i = 0; i < rows; i++)
     for (int j = 0; j < columns; j++)
       if (game_map[i][j] != '?') {
         assert(game_map[i][j] >= '0' && game_map[i][j] <= '8');
         map_status[i][j] = 2;
       }
-  // scan the map and process the simplest case
+  /*scan the map and process the simplest case*/
   ProcessSimpleCase();
-  // 1.find all unkown blocks that are adjacnent to clicked blocks and prepare
-  // for Gaussian-Jordan Elimination.
-  // 2. start Gaussian-Jordan Elimination
-  // 3. interpret the result of Gaussian-Jordan Elimination,store the result in
-  // map_status and push the newly found block that definitely has no mine
-  // into no_mine_block_to_be_clicked
+  /**
+   * 1.find all unkown blocks that are adjacnent to clicked blocks and prepare
+   * for Gaussian-Jordan Elimination.
+   * 2. start Gaussian-Jordan Elimination
+   * 3. interpret the result of Gaussian-Jordan Elimination,store the result in
+   * map_status and push the newly found block that definitely has no mine
+   * into no_mine_block_to_be_clicked
+   */
   for (int i = 0; i < 15; i++) {
     std::vector<std::vector<double> > equations = GenerateEquations();
     equations = GaussianJordanElimination(equations);
@@ -411,10 +450,10 @@ void PreProcessData() {
  * just used temporarily before a better algorithm is designed.
  */
 std::pair<int, int> TotalRandomGuess() {
-  using namespace Client;
   // std::cout << "TotalRandomGuess" << std::endl;
-  std::uniform_int_distribution<int> row_dis(0, rows - 1),
-      column_dis(0, columns - 1);
+  // clang-format off
+  std::uniform_int_distribution<int> row_dis(0, rows - 1), column_dis(0, columns - 1);
+  // clang-format on
   int row = row_dis(RawRnd), column = column_dis(RawRnd);
   while (map_status[row][column] != 0) {
     row = row_dis(RawRnd);
@@ -425,11 +464,11 @@ std::pair<int, int> TotalRandomGuess() {
 inline double GetProb(double default_p, const std::vector<double> &ps) {
   if (ps.empty()) return default_p;
   double res = 0;
-  const double v =
-      1.75;  // use root mean square to estimate the probability in a cautious
-             // way,and this specific value is chosen by testing
-  for (int i = 0; i < ps.size(); i++) res += pow(ps[i], v);
-  return pow(res / ps.size(), 1.0 / v);
+  const double kPowerMeanCoefficient = 1.75;
+  // use root mean square to estimate the probability in a cautious way,and this
+  // specific value is chosen by testing
+  for (int i = 0; i < ps.size(); i++) res += pow(ps[i], kPowerMeanCoefficient);
+  return pow(res / ps.size(), 1.0 / kPowerMeanCoefficient);
 }
 /**
  * @brief The definition of function SimpleGuess()
@@ -438,12 +477,12 @@ inline double GetProb(double default_p, const std::vector<double> &ps) {
  * none-mine block to be clicked using simple algorithm.
  */
 std::pair<int, int> SimpleGuess() {
-  using namespace Client;
-  const double m_pow_edge = 0.5;
-  const double m_pow_coner = 2.5;
+  const double kMappingParameterEdge = 0.5;
+  const double kMappingParameterCorner = 2.5;
   // std::cout << "SimpleGuess" << std::endl;
-  std::vector<double> probability[max_size][max_size];
-  double default_probability = pow(0.06, (m_pow_edge + m_pow_coner) / 2);
+  std::vector<double> probability[kMaxMapSize][kMaxMapSize];
+  double default_probability =
+      pow(0.06, (kMappingParameterEdge + kMappingParameterCorner) / 2);
   int total_known = 0, total_known_with_mine = 0;
   for (int i = 0; i < rows; i++)
     for (int j = 0; j < columns; j++)
@@ -452,25 +491,26 @@ std::pair<int, int> SimpleGuess() {
         if (map_status[i][j] == -1) total_known_with_mine++;
       }
   if (total_known > 5)
-    default_probability = pow((double)(total_known_with_mine) / (total_known),
-                              (m_pow_coner + m_pow_edge) / 2);
+    default_probability =
+        pow((double)(total_known_with_mine) / (total_known),
+            (kMappingParameterCorner + kMappingParameterEdge) / 2);
   // if((double)(total_known)/(rows*columns)<0.15) return TotalRandomGuess();
   for (int i = 0; i < rows; i++)
     for (int j = 0; j < columns; j++)
       if (map_status[i][j] == 2) {
-        int nearby_mines = game_map[i][j] - '0',
-            nearby_unkown =
-                0;  // nearby_mines is the number of mines in currently unknown
-                    // blocks that are adjacent to the block (i,j)
+        int nearby_mines = game_map[i][j] - '0', nearby_unkown = 0;
+        // nearby_mines is the number of mines in currently unknown blocks that
+        // are adjacent to the block (i,j)
         const int dx[8] = {-1, -1, -1, 0, 0, 1, 1, 1},
                   dy[8] = {-1, 0, 1, -1, 1, -1, 0, 1};
         for (int k = 0; k < 8; k++) {
           int x = i + dx[k], y = j + dy[k];
           if (x >= 0 && x < rows && y >= 0 && y < columns) {
-            if (map_status[x][y] == 0)
+            if (map_status[x][y] == 0) {
               nearby_unkown++;
-            else if (map_status[x][y] == -1)
+            } else if (map_status[x][y] == -1) {
               nearby_mines--;
+            }
           }
         }
         if (nearby_unkown == 0) continue;
@@ -478,12 +518,15 @@ std::pair<int, int> SimpleGuess() {
           int x = i + dx[k], y = j + dy[k];
           if (x >= 0 && x < rows && y >= 0 && y < columns) {
             if (map_status[x][y] == 0)
-              if (abs(dx[k]) + abs(dy[k]) == 2)
+              if (abs(dx[k]) + abs(dy[k]) == 2) {
                 probability[x][y].push_back(
-                    pow((double)(nearby_mines) / (nearby_unkown), m_pow_coner));
-              else
+                    pow((double)(nearby_mines) / (nearby_unkown),
+                        kMappingParameterCorner));
+              } else {
                 probability[x][y].push_back(
-                    pow((double)(nearby_mines) / (nearby_unkown), m_pow_edge));
+                    pow((double)(nearby_mines) / (nearby_unkown),
+                        kMappingParameterEdge));
+              }
             assert(abs(dx[k]) + abs(dy[k]) == 1 ||
                    abs(dx[k]) + abs(dy[k]) == 2);
           }
@@ -491,8 +534,8 @@ std::pair<int, int> SimpleGuess() {
       }
   std::pair<int, int> best_guess = TotalRandomGuess();
   bool allow_a_guess = true;
-  const double guess_begin_consideration_ratio = 0.95;
-  const double guess_tightness_parameter = 10;
+  const double kRandomBeginConsiderationRatio = 0.95;
+  const double kRandomTightnessParameter = 10;
   for (int i = 0; i < rows; i++)
     for (int j = 0; j < columns; j++)
       if (map_status[i][j] == 0) {
@@ -504,10 +547,10 @@ std::pair<int, int> SimpleGuess() {
           best_guess.first = i;
           best_guess.second = j;
         } else if ((double)(total_known) / (rows * columns) >
-                       guess_begin_consideration_ratio &&
+                       kRandomBeginConsiderationRatio &&
                    allow_a_guess) {
-          if (exp(-(this_prob - current_prob) * guess_tightness_parameter) >
-              RawRnd() / RawRnd_max) {
+          if (exp(-(this_prob - current_prob) * kRandomTightnessParameter) >
+              RawRnd() / kRawRndMax) {
             best_guess.first = i;
             best_guess.second = j;
             // allow_a_guess = false;
@@ -522,31 +565,25 @@ std::pair<int, int> SimpleGuess() {
  * @details This function is designed to make the best guess when there is no
  * definite none-mine block to be clicked.
  */
-std::pair<int, int> MakeBestGuess() {
-  using namespace Client;
-  // just make a total random guess before a better algorithm is designed
-  //   return TotalRandomGuess();
-  return SimpleGuess();
-  return std::make_pair(0, 0);
-}
+inline std::pair<int, int> MakeBestGuess() { return SimpleGuess(); }
 /**
  * @brief The definition of function GenerateNextStep()
  *
  * @details This function is designed to generate the next step when playing
  * the client's (or player's) role.
  */
-std::pair<int, int> GenerateNextStep() {
-  using namespace Client;
+inline std::pair<int, int> GenerateNextStep() {
   if (!no_mine_block_to_be_clicked.empty()) {
     std::pair<int, int> next_step = no_mine_block_to_be_clicked.front();
     no_mine_block_to_be_clicked.pop();
     return next_step;
-  } else
+  } else {
     return MakeBestGuess();
+  }
 }
 }  // namespace Client
 void ReadMap() {
-  using namespace Client;
+  using Client::PreProcessData, Client::game_map;
   for (int i = 0; i < rows; i++) {
     std::cin >> game_map[i];
     assert(strlen(game_map[i]) == columns);
@@ -561,11 +598,11 @@ void ReadMap() {
  * client's (or player's) role. Open up your mind and make your decision here!
  */
 void Decide() {
-  using namespace Client;
+  using Client::GenerateNextStep;
   while (true) {
     std::pair<int, int> next_step = GenerateNextStep();
     Execute(next_step.first, next_step.second);
   }
 }
 
-#endif
+#endif // CLIENT_H

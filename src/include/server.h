@@ -1,3 +1,30 @@
+/**
+ * @file server.h
+ *
+ * @brief The header file of the server.
+ * @details This file contains the definition of the functions that you need to
+ * call to run the game.
+ *
+ * @codesytle This file is written in a sytle mainly based on Google C++ Style
+ * Guide. What's sepecial is the comment:
+ * 1. Multi-line comments are always before the code they comment on.
+ * Usually the code they comment on is a complex procedure,like the definition
+ * of a function,a class or a variable with complex operation. If a multi-line
+ * comment is in one line, it will start with "/*" instead of "/**",otherwise it
+ * will start with "/**" and in the format of Doxygen.
+ * 2. Single-line comments are always after the code they comment on.
+ * Usually they are in the same line with the code they comment on,but sometimes
+ * they may come in the next lines. single-line comments shouldn't exceed 3
+ * lines as they are intended to be short and easy to understand.
+ * 3. Temporary commented code will be marked with "//" in the front of each
+ * 4. Some comments have special meanings,like "//TODO", "//FIXME", "//XXX","//
+ * clang-format off" and "// clang-format on". They are not controlled by the
+ * previous rules.
+ *
+ * As I use Clang-format to format my code, so the code style may be a little
+ * bit strange when parameters or phrases are too long,thus I'm try to manually
+ * format the code.
+ */
 #ifndef SERVER_H
 #define SERVER_H
 
@@ -14,18 +41,18 @@
  * yet. However, if you are member of A-class or have learnt the use of cpp
  * class, member functions, etc., you're free to modify this structure.
  */
-// This server has passed the formal test, do not modify it if you are not sure
 int rows;        // The count of rows of the game map
 int columns;     // The count of columns of the game map
 int game_state;  // The state of the game, 0 for continuing, 1 for winning, -1
                  // for losing
 namespace Server {
 int visit_count, step_count;
-const int max_size = 35;
-char origin_map[max_size][max_size];   // The original map
-char visible_map[max_size][max_size];  // The map that the player can see
-int number_of_nearby_mines[max_size][max_size];  // The number of nearby mines
-int number_of_all_mines;                         // The number of all mines
+const int kMaxMapSize = 35;
+char origin_map[kMaxMapSize][kMaxMapSize];   // The original map
+char visible_map[kMaxMapSize][kMaxMapSize];  // The map that the player can see
+int number_of_nearby_mines[kMaxMapSize][kMaxMapSize];
+// The number of nearby mines
+int number_of_all_mines;  // The number of all mines
 }  // namespace Server
 /**
  * @brief The definition of function InitMap()
@@ -40,8 +67,9 @@ int number_of_all_mines;                         // The number of all mines
  * blocks unvisited.
  */
 void InitMap() {
-  using namespace std;
-  using namespace Server;
+  using Server::origin_map, Server::visible_map, Server::number_of_nearby_mines,
+      Server::number_of_all_mines;
+  using std::cin;
   std::cin >> rows >> columns;
   assert(2 <= rows && rows <= 30 && 2 <= columns && columns <= 30);
   for (int i = 0; i < rows; i++) {
@@ -63,7 +91,7 @@ void InitMap() {
   for (int i = 0; i < rows; i++)
     for (int j = 0; j < columns; j++)
       if (origin_map[i][j] == 'X') number_of_all_mines++;
-  // bug test: output the number of nearby mines
+  /* bug test: output the number of nearby mines*/
   // for (int i = 0; i < rows; i++) {
   //   for (int j = 0; j < columns; j++) {
   //     cout << number_of_nearby_mines[i][j] << ' ';
@@ -98,9 +126,11 @@ void InitMap() {
  * the game ends and the player loses.
  */
 void VisitBlock(int row, int column) {
-  using namespace Server;
+  using Server::step_count, Server::origin_map, Server::visible_map,
+      Server::number_of_nearby_mines, Server::number_of_all_mines,
+      Server::visit_count;
   step_count++;
-  using namespace std;
+  using std::queue, std::make_pair, std::pair;
   assert(0 <= row && row < rows && 0 <= column && column < columns);
   if (origin_map[row][column] == 'X') {
     game_state = -1;
@@ -161,7 +191,7 @@ void VisitBlock(int row, int column) {
  * the advanced task!!!
  */
 void PrintMap() {
-  using namespace Server;
+  using Server::visible_map, Server::origin_map, Server::number_of_nearby_mines;
   if (game_state != 1) {
     for (int i = 0; i < rows; i++) {
       std::cout << visible_map[i] << std::endl;
@@ -189,7 +219,7 @@ void PrintMap() {
  * number of steps taken respectively.
  */
 void ExitGame() {
-  using namespace Server;
+  using Server::visit_count, Server::step_count;
   assert(game_state != 0);
   if (game_state == 1) {
     std::cout << "YOU WIN!" << std::endl;
@@ -201,4 +231,4 @@ void ExitGame() {
   exit(0);  // Exit the game immediately
 }
 
-#endif
+#endif  // SERVER_H
